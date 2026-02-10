@@ -9,6 +9,7 @@ import Settings from './pages/Settings'
 import Leads from './pages/Leads'
 import Workflows from './pages/Workflows'
 import Reports from './pages/Reports'
+import Automation from './pages/Automation'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="leads" element={<Leads />} />
             <Route path="workflows" element={<Workflows />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="automation" element={<Automation />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

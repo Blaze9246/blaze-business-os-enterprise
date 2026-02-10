@@ -9,6 +9,7 @@ import {
   Users, 
   Workflow,
   BarChart3,
+  Zap,
   Settings,
   Menu,
   X,
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Leads', href: '/leads', icon: Users },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
+  { name: 'Automation', href: '/automation', icon: Zap },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
