@@ -47,3 +47,29 @@ export const runWorkflow = (id: string) => api.post(`/api/workflows/${id}/run`)
 
 // Revenue
 export const getRevenue = (days = 30) => api.get(`/api/revenue?days=${days}`)
+
+// Shopify Integration
+export const getShopifyOrders = (storeId: string, limit = 50) => 
+  api.get(`/api/stores/${storeId}/shopify/orders?limit=${limit}`)
+
+export const getShopifyProducts = (storeId: string, limit = 50) => 
+  api.get(`/api/stores/${storeId}/shopify/products?limit=${limit}`)
+
+export const getShopifyAnalytics = (storeId: string, startDate?: string, endDate?: string) => 
+  api.get(`/api/stores/${storeId}/shopify/analytics?startDate=${startDate}&endDate=${endDate}`)
+
+export const getShopifyInventory = (storeId: string) => 
+  api.get(`/api/stores/${storeId}/shopify/inventory`)
+
+// Omnisend Integration
+export const getOmnisendContacts = (limit = 50) => 
+  api.get(`/api/omnisend/contacts?limit=${limit}`)
+
+export const getOmnisendCampaigns = () => 
+  api.get('/api/omnisend/campaigns')
+
+export const getOmnisendAnalytics = (startDate?: string, endDate?: string) => 
+  api.get(`/api/omnisend/analytics?startDate=${startDate}&endDate=${endDate}`)
+
+export const createOmnisendCampaign = (data: any) => 
+  api.post('/api/omnisend/campaigns', data)

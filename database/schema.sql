@@ -130,6 +130,19 @@ CREATE TABLE revenue_tracking (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- User settings table (for API keys)
+CREATE TABLE user_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    shopify_api_key VARCHAR(500),
+    shopify_api_secret VARCHAR(500),
+    omnisend_api_key VARCHAR(500),
+    hunter_api_key VARCHAR(500),
+    systeme_api_key VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX idx_stores_user_id ON stores(user_id);
 CREATE INDEX idx_tasks_user_id ON tasks(user_id);
@@ -138,6 +151,7 @@ CREATE INDEX idx_agents_user_id ON ai_agents(user_id);
 CREATE INDEX idx_activity_user_id ON activity_log(user_id);
 CREATE INDEX idx_leads_user_id ON leads(user_id);
 CREATE INDEX idx_revenue_user_date ON revenue_tracking(user_id, date);
+CREATE INDEX idx_user_settings_user_id ON user_settings(user_id);
 
 -- Insert sample data for Zain
 INSERT INTO users (id, email, first_name, last_name, company_name, role) VALUES

@@ -8,6 +8,7 @@ import Stores from './pages/Stores'
 import Settings from './pages/Settings'
 import Leads from './pages/Leads'
 import Workflows from './pages/Workflows'
+import Reports from './pages/Reports'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="stores" element={<Stores />} />
             <Route path="leads" element={<Leads />} />
             <Route path="workflows" element={<Workflows />} />
+            <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

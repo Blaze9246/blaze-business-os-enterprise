@@ -4,6 +4,10 @@ const jwt = require('@fastify/jwt');
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Integration modules
+const ShopifyIntegration = require('./integrations/shopify');
+const OmnisendIntegration = require('./integrations/omnisend');
+
 // Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/blaze_os',
@@ -255,6 +259,208 @@ fastify.get('/api/revenue', { preHandler: [fastify.authenticate] }, async (reque
   );
   
   return result.rows;
+});
+
+// SHOPIFY INTEGRATION
+fastify.get('/api/stores/:id/shopify/orders', { preHandler: [fastify.authenticate] }, async (request) => {
+  const { id } = request.params;
+  const { limit = 50 } = request.query;
+  
+  const storeResult = await pool.query(
+    'SELECT * FROM stores WHERE id = $1 AND platform = $2',
+    [id, 'shopify']
+  );
+  
+  if (storeResult.rows.length === 0) {
+    return { error: 'Store not found or not Shopify' };
+  }
+  
+  const store = storeResult.rows[0];
+  const shopify = new ShopifyIntegration(store.store_url, store.access_token);
+  
+  try {
+    const orders = await shopify.getOrders(limit);
+    return { orders };
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+fastify.get('/api/stores/:id/shopify/products', { preHandler: [fastify.authenticate] }, async (request) => {
+  const { id } = request.params;
+  const { limit = 50 } = request.query;
+  
+  const storeResult = await pool.query(
+    'SELECT * FROM stores WHERE id = $1 AND platform = $2',
+    [id, 'shopify']
+  );
+  
+  if (storeResult.rows.length === 0) {
+    return { error: 'Store not found or not Shopify' };
+  }
+  
+  const store = storeResult.rows[0];
+  const shopify = new ShopifyIntegration(store.store_url, store.access_token);
+  
+  try {
+    const products = await shopify.getProducts(limit);
+    return { products };
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+fastify.get('/api/stores/:id/shopify/analytics', { preHandler: [fastify.authenticate] }, async (request) => {
+  const { id } = request.params;
+  const { startDate, endDate } = request.query;
+  
+  const storeResult = await pool.query(
+    'SELECT * FROM stores WHERE id = $1 AND platform = $2',
+    [id, 'shopify']
+  );
+  
+  if (storeResult.rows.length === 0) {
+    return { error: 'Store not found or not Shopify' };
+  }
+  
+  const store = storeResult.rows[0];
+  const shopify = new ShopifyIntegration(store.store_url, store.access_token);
+  
+  try {
+    // Default to last 30 days if no dates provided
+    const start = startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const end = endDate || new Date().toISOString();
+    
+    const report = await shopify.getSalesReport(start, end);
+    return report;
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+fastify.get('/api/stores/:id/shopify/inventory', { preHandler: [fastify.authenticate] }, async (request) => {
+  const { id } = request.params;
+  
+  const storeResult = await pool.query(
+    'SELECT * FROM stores WHERE id = $1 AND platform = $2',
+    [id, 'shopify']
+  );
+  
+  if (storeResult.rows.length === 0) {
+    return { error: 'Store not found or not Shopify' };
+  }
+  
+  const store = storeResult.rows[0];
+  const shopify = new ShopifyIntegration(store.store_url, store.access_token);
+  
+  try {
+    const inventory = await shopify.getInventoryLevels();
+    return { inventory };
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+// OMNISEND INTEGRATION
+fastify.get('/api/omnisend/contacts', { preHandler: [fastify.authenticate] }, async (request) => {
+  const userId = request.user.id;
+  const { limit = 50 } = request.query;
+  
+  // Get user's Omnisend API key from settings (stored in database)
+  const settingsResult = await pool.query(
+    'SELECT omnisend_api_key FROM user_settings WHERE user_id = $1',
+    [userId]
+  );
+  
+  const apiKey = settingsResult.rows[0]?.omnisend_api_key || process.env.OMNISEND_API_KEY;
+  
+  if (!apiKey) {
+    return { error: 'Omnisend API key not configured' };
+  }
+  
+  const omnisend = new OmnisendIntegration(apiKey);
+  
+  try {
+    const contacts = await omnisend.getContacts(limit);
+    return contacts;
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+fastify.get('/api/omnisend/campaigns', { preHandler: [fastify.authenticate] }, async (request) => {
+  const userId = request.user.id;
+  
+  const settingsResult = await pool.query(
+    'SELECT omnisend_api_key FROM user_settings WHERE user_id = $1',
+    [userId]
+  );
+  
+  const apiKey = settingsResult.rows[0]?.omnisend_api_key || process.env.OMNISEND_API_KEY;
+  
+  if (!apiKey) {
+    return { error: 'Omnisend API key not configured' };
+  }
+  
+  const omnisend = new OmnisendIntegration(apiKey);
+  
+  try {
+    const campaigns = await omnisend.getCampaigns();
+    return campaigns;
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+fastify.get('/api/omnisend/analytics', { preHandler: [fastify.authenticate] }, async (request) => {
+  const userId = request.user.id;
+  const { startDate, endDate } = request.query;
+  
+  const settingsResult = await pool.query(
+    'SELECT omnisend_api_key FROM user_settings WHERE user_id = $1',
+    [userId]
+  );
+  
+  const apiKey = settingsResult.rows[0]?.omnisend_api_key || process.env.OMNISEND_API_KEY;
+  
+  if (!apiKey) {
+    return { error: 'Omnisend API key not configured' };
+  }
+  
+  const omnisend = new OmnisendIntegration(apiKey);
+  
+  try {
+    const analytics = await omnisend.getAnalytics(startDate, endDate);
+    return analytics;
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+fastify.post('/api/omnisend/campaigns', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  const userId = request.user.id;
+  const campaignData = request.body;
+  
+  const settingsResult = await pool.query(
+    'SELECT omnisend_api_key FROM user_settings WHERE user_id = $1',
+    [userId]
+  );
+  
+  const apiKey = settingsResult.rows[0]?.omnisend_api_key || process.env.OMNISEND_API_KEY;
+  
+  if (!apiKey) {
+    return { error: 'Omnisend API key not configured' };
+  }
+  
+  const omnisend = new OmnisendIntegration(apiKey);
+  
+  try {
+    const campaign = await omnisend.createCampaign(campaignData);
+    reply.code(201);
+    return campaign;
+  } catch (error) {
+    return { error: error.message };
+  }
 });
 
 // WebSocket for real-time updates
