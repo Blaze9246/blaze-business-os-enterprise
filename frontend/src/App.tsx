@@ -20,7 +20,7 @@ function App() {
       
       <SignedIn>
         <Routes>
-          <Route path="/" element={<Layout />>
+          <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="agents" element={<Agents />} />

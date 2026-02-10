@@ -10,7 +10,7 @@ const statusColors = {
 }
 
 export default function Workflows() {
-  const { workflows, setWorkflows, loading, setLoading } = useAppStore()
+  const { workflows, setWorkflows, setLoading } = useAppStore()
 
   useEffect(() => {
     loadWorkflows()

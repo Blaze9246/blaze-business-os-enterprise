@@ -20,4 +20,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  esbuild: {
+    // Don't fail on unused vars (TypeScript warnings)
+    logOverride: { 
+      'unused-var': 'silent',
+      'ts(6133)': 'silent'
+    }
+  }
 })

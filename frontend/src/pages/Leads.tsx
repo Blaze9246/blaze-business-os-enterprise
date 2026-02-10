@@ -11,7 +11,7 @@ const statusColors = {
 }
 
 export default function Leads() {
-  const { leads, setLeads, loading, setLoading } = useAppStore()
+  const { leads, setLeads, setLoading } = useAppStore()
 
   useEffect(() => {
     loadLeads()

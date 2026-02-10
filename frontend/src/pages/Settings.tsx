@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-react'
-import { User, Mail, Building2, Bell, Shield, Palette } from 'lucide-react'
+import { User, Building2, Bell, Shield } from 'lucide-react'
 
 export default function Settings() {
   const { user } = useUser()

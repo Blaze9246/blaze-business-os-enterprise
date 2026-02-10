@@ -11,7 +11,7 @@ const statsConfig = [
 ]
 
 export default function Dashboard() {
-  const { stats, activity, loading, setStats, setActivity, setLoading } = useAppStore()
+  const { stats, activity, setStats, setActivity, setLoading } = useAppStore()
 
   useEffect(() => {
     loadDashboardData()

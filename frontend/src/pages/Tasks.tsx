@@ -19,7 +19,7 @@ const priorityColors = {
 }
 
 export default function Tasks() {
-  const { tasks, setTasks, loading, setLoading } = useAppStore()
+  const { tasks, setTasks, setLoading } = useAppStore()
   const [columnTasks, setColumnTasks] = useState<Record<string, any[]>>({})
 
   useEffect(() => {

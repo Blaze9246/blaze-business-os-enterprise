@@ -10,7 +10,7 @@ const statusConfig = {
 }
 
 export default function Stores() {
-  const { stores, setStores, loading, setLoading } = useAppStore()
+  const { stores, setStores, setLoading } = useAppStore()
   const [syncingId, setSyncingId] = useState<string | null>(null)
 
   useEffect(() => {

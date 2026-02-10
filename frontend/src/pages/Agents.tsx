@@ -10,7 +10,7 @@ const statusConfig = {
 }
 
 export default function Agents() {
-  const { agents, setAgents, loading, setLoading } = useAppStore()
+  const { agents, setAgents, setLoading } = useAppStore()
 
   useEffect(() => {
     loadAgents()

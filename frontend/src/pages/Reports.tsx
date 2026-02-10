@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { BarChart3, Package, Users, Mail, TrendingUp, Calendar, Download } from 'lucide-react'
+import { BarChart3, Package, Users, Mail, TrendingUp, Download } from 'lucide-react'
 import { useAppStore } from '../stores/appStore'
-import { getShopifyAnalytics, getShopifyOrders, getOmnisendAnalytics } from '../lib/api'
+import { getShopifyAnalytics, getOmnisendAnalytics } from '../lib/api'
 
 export default function Reports() {
   const { stores } = useAppStore()
@@ -151,7 +151,7 @@ export default function Reports() {
                         <div
                           className="bg-primary rounded-full h-2 transition-all"
                           style={{
-                            width: `${Math.min((count / Math.max(...Object.values(shopifyData.ordersByDay))) * 100, 100)}%`,
+                            width: `${Math.min((count / Math.max(...Object.values(shopifyData.ordersByDay as Record<string, number>))) * 100, 100)}%`,
                           }}
                         />
                       </div>
