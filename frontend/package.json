@@ -8,15 +8,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^4.30.0",
+    "@hello-pangea/dnd": "^18.0.1",
+    "axios": "^1.6.2",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.0",
-    "@clerk/clerk-react": "^4.30.0",
-    "zustand": "^4.4.7",
-    "axios": "^1.6.2",
-    "clsx": "^2.0.0",
     "tailwind-merge": "^2.2.0",
-    "lucide-react": "^0.294.0"
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
