@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Paperclip, Loader2 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { api } from '../lib/api'
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -11,22 +12,78 @@ interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
-  timestamp: Date
+  timestamp: Date | string
   loading?: boolean
 }
 
 export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hey Zain! 👋 I\'m Blaze, your AI automation architect. What can I help you with today?',
-      timestamp: new Date()
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const wsRef = useRef<WebSocket | null>(null)
+
+  // Load messages on mount
+  useEffect(() => {
+    loadMessages()
+    // setupWebSocket()
+    markAsRead()
+  }, [])
+
+  const loadMessages = async () => {
+    try {
+      const res = await api.get('/api/chat/messages')
+      setMessages(res.data)
+    } catch (error) {
+      console.error('Failed to load messages:', error)
+      // Fallback to default message
+      setMessages([{
+        id: '1',
+        role: 'assistant',
+        content: 'Hey Zain! 👋 I\'m Blaze, your AI automation architect. What can I help you with today?',
+        timestamp: new Date()
+      }])
+    } finally {
+      setInitialLoading(false)
+    }
+  }
+
+  const markAsRead = async () => {
+    try {
+      await api.post('/api/chat/read')
+    } catch (error) {
+      // Ignore
+    }
+  }
+
+  // WebSocket setup for real-time messages
+  const setupWebSocket = () => {
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws'
+    const ws = new WebSocket(wsUrl)
+    
+    ws.onopen = () => {
+      console.log('WebSocket connected')
+      ws.send(JSON.stringify({ type: 'subscribe', channel: 'chat' }))
+    }
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      if (data.type === 'new_message') {
+        setMessages(prev => [...prev, data.message])
+      }
+    }
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error)
+    }
+    
+    wsRef.current = ws
+    
+    return () => {
+      ws.close()
+    }
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -60,35 +117,27 @@ export default function Chat() {
       loading: true
     }])
 
-    // Simulate AI response (in real app, this would call your backend)
-    setTimeout(() => {
-      const responses: Record<string, string> = {
-        'hello': 'Hey! Ready to automate some workflows? 🔥',
-        'hi': 'Hi there! What are we building today?',
-        'help': 'I can help you:\n• Run automation scripts\n• Check agent status\n• Generate leads\n• Create content\n• Analyze stores\n\nWhat do you need?',
-        'status': 'All 6 AI agents are operational. Hunter Agent ran 2h ago, found 10 new leads. Creator Agent is processing Instagram content now.',
-        'leads': 'Last run: Hunter Agent found 10 qualified leads. Want me to export them or run another search?',
-        'run': 'I can trigger any automation script. Which one?\n\n1. Hunter Agent - Find leads\n2. Outreach Agent - Send emails\n3. Creator Agent - Generate content\n4. Auditor Agent - Store audit\n5. Competitor Tracker - Monitor rivals',
-        'export': 'I can export:\n• Leads (CSV)\n• Store analytics\n• Campaign reports\n• Workflow logs\n\nWhich would you like?'
-      }
-
-      const lowerInput = input.toLowerCase()
-      let response = 'I\'m on it! Let me process that for you. 🔥'
+    try {
+      // Send to backend API
+      const res = await api.post('/api/chat/messages', { content: userMessage.content })
       
-      for (const [key, value] of Object.entries(responses)) {
-        if (lowerInput.includes(key)) {
-          response = value
-          break
-        }
-      }
-
+      // Update with actual AI response
       setMessages(prev => prev.map(msg => 
         msg.id === loadingId 
-          ? { ...msg, content: response, loading: false }
+          ? { ...msg, content: res.data.assistantMessage.content, loading: false, id: res.data.assistantMessage.id }
           : msg
       ))
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      // Update with error
+      setMessages(prev => prev.map(msg => 
+        msg.id === loadingId 
+          ? { ...msg, content: 'Sorry, I\'m having trouble connecting. Please try again.', loading: false }
+          : msg
+      ))
+    } finally {
       setLoading(false)
-    }, 1500)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -96,6 +145,14 @@ export default function Chat() {
       e.preventDefault()
       handleSend()
     }
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -153,7 +210,7 @@ export default function Chat() {
                 'text-xs mt-1',
                 message.role === 'user' ? 'text-primary-light' : 'text-gray-500'
               )}>
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
           </div>

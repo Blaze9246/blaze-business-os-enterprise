@@ -143,6 +143,25 @@ CREATE TABLE user_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Chat messages table (omni-chat)
+CREATE TABLE chat_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(50) NOT NULL, -- 'user' or 'assistant'
+    content TEXT NOT NULL,
+    source VARCHAR(50) DEFAULT 'app', -- 'app', 'whatsapp', 'telegram'
+    platform VARCHAR(50) DEFAULT 'web', -- 'web', 'whatsapp', 'telegram'
+    message_id VARCHAR(255), -- external message ID (WhatsApp message ID)
+    read BOOLEAN DEFAULT false,
+    synced BOOLEAN DEFAULT false,
+    synced_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index for fast message retrieval
+CREATE INDEX idx_chat_messages_user_id ON chat_messages(user_id);
+CREATE INDEX idx_chat_messages_created_at ON chat_messages(created_at);
+
 -- Indexes for performance
 CREATE INDEX idx_stores_user_id ON stores(user_id);
 CREATE INDEX idx_tasks_user_id ON tasks(user_id);

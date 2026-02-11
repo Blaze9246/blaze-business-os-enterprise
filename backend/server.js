@@ -8,9 +8,11 @@ require('dotenv').config();
 const ShopifyIntegration = require('./integrations/shopify');
 const OmnisendIntegration = require('./integrations/omnisend');
 const ScriptManager = require('./integrations/scriptManager');
+const OmniChatService = require('./integrations/omniChat');
 
-// Initialize script manager
+// Initialize services
 const scriptManager = new ScriptManager();
+const omniChat = new OmniChatService(pool);
 
 // Database connection
 const pool = new Pool({
@@ -466,6 +468,104 @@ fastify.post('/api/omnisend/campaigns', { preHandler: [fastify.authenticate] }, 
     return { error: error.message };
   }
 });
+
+// CHAT ROUTES (Omni-Chat)
+
+// Get chat history
+fastify.get('/api/chat/messages', { preHandler: [fastify.authenticate] }, async (request) => {
+  const userId = request.user.id;
+  const messages = await omniChat.getConversation(userId);
+  return messages;
+});
+
+// Send message (from app)
+fastify.post('/api/chat/messages', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  const userId = request.user.id;
+  const { content } = request.body;
+
+  if (!content) {
+    reply.code(400);
+    return { error: 'Message content required' };
+  }
+
+  // Save user message
+  const userMessage = await omniChat.saveMessage({
+    userId,
+    role: 'user',
+    content,
+    source: 'app',
+    platform: 'web'
+  });
+
+  // Sync to WhatsApp
+  await omniChat.syncToWhatsApp(userId, content);
+
+  // Generate AI response (placeholder - integrate with your AI)
+  const aiResponse = await generateAIResponse(content);
+
+  // Send AI response
+  const assistantMessage = await omniChat.sendResponse(userId, aiResponse);
+
+  reply.code(201);
+  return {
+    userMessage,
+    assistantMessage
+  };
+});
+
+// Mark messages as read
+fastify.post('/api/chat/read', { preHandler: [fastify.authenticate] }, async (request) => {
+  const userId = request.user.id;
+  await omniChat.markAsRead(userId);
+  return { success: true };
+});
+
+// Get unread count
+fastify.get('/api/chat/unread', { preHandler: [fastify.authenticate] }, async (request) => {
+  const userId = request.user.id;
+  const count = await omniChat.getUnreadCount(userId);
+  return { count };
+});
+
+// Webhook for incoming WhatsApp messages
+fastify.post('/webhooks/whatsapp', async (request, reply) => {
+  const { phone, message, messageId } = request.body;
+
+  try {
+    await omniChat.handleWhatsAppMessage(phone, message, messageId);
+    reply.code(200);
+    return { success: true };
+  } catch (error) {
+    console.error('WhatsApp webhook error:', error);
+    reply.code(500);
+    return { error: error.message };
+  }
+});
+
+// AI Response helper (placeholder)
+async function generateAIResponse(userMessage) {
+  // This is where you'd integrate with your AI (Claude, GPT, etc.)
+  // For now, return smart responses based on keywords
+  const lowerMsg = userMessage.toLowerCase();
+
+  if (lowerMsg.includes('hello') || lowerMsg.includes('hi')) {
+    return 'Hey Zain! 👋 Ready to automate some workflows? What are we working on today?';
+  }
+  if (lowerMsg.includes('status')) {
+    return 'All 6 AI agents are operational. Hunter Agent found 10 new leads in the last run. Creator Agent is processing Instagram content. Everything is running smoothly! 🔥';
+  }
+  if (lowerMsg.includes('leads')) {
+    return 'Last run: Hunter Agent discovered 10 qualified leads. 3 are HOT (score 85+), 4 are WARM. Want me to export them or run another search?';
+  }
+  if (lowerMsg.includes('run') || lowerMsg.includes('start')) {
+    return 'I can trigger any automation script. Which one?\n\n1. Hunter Agent - Find leads\n2. Outreach Agent - Send emails\n3. Creator Agent - Generate content\n4. Auditor Agent - Store audit\n5. Competitor Tracker - Monitor rivals';
+  }
+  if (lowerMsg.includes('export')) {
+    return 'I can export:\n• Leads (CSV)\n• Store analytics\n• Campaign reports\n• Workflow logs\n\nWhich would you like?';
+  }
+
+  return 'I\'m on it! Let me process that for you. 🔥\n\n(Note: Full AI integration coming in next update)';
+}
 
 // SCRIPT EXECUTION ROUTES
 
