@@ -2,7 +2,7 @@ services:
   - type: web
     name: blaze-business-os
     runtime: node
-    buildCommand: npm install && cd frontend && npm install && npm run build
+    buildCommand: cd frontend && npm ci && npm run build
     startCommand: node server-static.js
     envVars:
       - key: NODE_ENV
