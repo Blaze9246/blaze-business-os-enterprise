@@ -4,6 +4,12 @@ const jwt = require('@fastify/jwt');
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Database connection - MUST be first
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/blaze_os',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
 // Integration modules
 const ShopifyIntegration = require('./integrations/shopify');
 const OmnisendIntegration = require('./integrations/omnisend');
@@ -13,12 +19,6 @@ const OmniChatService = require('./integrations/omniChat');
 // Initialize services
 const scriptManager = new ScriptManager();
 const omniChat = new OmniChatService(pool);
-
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/blaze_os',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
 
 // Register plugins
 fastify.register(cors, {
