@@ -10,6 +10,8 @@ import Leads from './pages/Leads'
 import Workflows from './pages/Workflows'
 import Reports from './pages/Reports'
 import Automation from './pages/Automation'
+import Chat from './pages/Chat'
+import Orchestrator from './pages/Orchestrator'
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
             <Route path="workflows" element={<Workflows />} />
             <Route path="reports" element={<Reports />} />
             <Route path="automation" element={<Automation />} />
+            <Route path="chat" element={<Chat />} />
+            <Route path="orchestrator" element={<Orchestrator />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

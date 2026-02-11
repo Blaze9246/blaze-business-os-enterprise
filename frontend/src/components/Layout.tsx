@@ -26,11 +26,13 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Tasks', href: '/tasks', icon: CheckSquare },
   { name: 'AI Agents', href: '/agents', icon: Bot },
+  { name: 'Orchestrator', href: '/orchestrator', icon: Workflow },
   { name: 'Stores', href: '/stores', icon: Store },
   { name: 'Leads', href: '/leads', icon: Users },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Automation', href: '/automation', icon: Zap },
+  { name: 'Chat', href: '/chat', icon: Bot },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
