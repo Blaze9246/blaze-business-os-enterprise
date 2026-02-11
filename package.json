@@ -1,14 +1,10 @@
 {
   "name": "blaze-business-os-enterprise",
   "version": "1.0.0",
-  "main": "backend/server.js",
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node server-static.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "pg": "^8.11.3",
-    "dotenv": "^16.4.1"
+    "express": "^4.18.2"
   }
 }
