@@ -1,89 +1,17 @@
 services:
-  # Backend API Service
   - type: web
-    name: blaze-business-os-api
+    name: blaze-business-os
     runtime: node
-    plan: starter
-    buildCommand: npm install
-    startCommand: node backend/server.js
-    healthCheckPath: /health
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: node server-static.js
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: blaze-os-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: blaze-os-redis
-          property: connectionString
       - key: JWT_SECRET
-        generateValue: true
+        value: blaze-super-secret-key-2024
       - key: CLERK_PUBLISHABLE_KEY
         value: pk_test_YWJvdmUtd2hpcHBldC0zNi5jbGVyay5hY2NvdW50cy5kZXYk
       - key: CLERK_SECRET_KEY
         value: sk_test_k61iDDorYAqa5TSxzaw1xcHQz3PH4blo1XSSp6ztqJ
       - key: SYSTEME_API_KEY
         value: gutxuny6z7abcijjhr16yqazqltx43z5gqcl8jpo12mibokr31js1hfc0ed8i8k2
-    disk:
-      name: scripts
-      mountPath: /app/scripts
-      sizeGB: 1
-
-  # Frontend Static Site
-  - type: static
-    name: blaze-business-os-app
-    runtime: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/dist
-    routes:
-      - type: rewrite
-        source: /
-        destination: /index.html
-      - type: rewrite
-        source: /dashboard
-        destination: /index.html
-      - type: rewrite
-        source: /tasks
-        destination: /index.html
-      - type: rewrite
-        source: /agents
-        destination: /index.html
-      - type: rewrite
-        source: /stores
-        destination: /index.html
-      - type: rewrite
-        source: /leads
-        destination: /index.html
-      - type: rewrite
-        source: /workflows
-        destination: /index.html
-      - type: rewrite
-        source: /reports
-        destination: /index.html
-      - type: rewrite
-        source: /automation
-        destination: /index.html
-      - type: rewrite
-        source: /settings
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          name: blaze-business-os-api
-          type: web
-          property: host
-          hostFormat: https
-
-databases:
-  - name: blaze-os-db
-    plan: starter
-    databaseName: blaze_os
-    user: blaze_os
-
-redis:
-  - name: blaze-os-redis
-    plan: starter
-    ipAllowList: []
