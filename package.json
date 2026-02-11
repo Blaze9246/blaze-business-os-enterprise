@@ -1,13 +1,9 @@
 {
   "name": "blaze-business-os-enterprise",
   "version": "1.0.0",
-  "description": "Enterprise Business Operating System",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   },
   "dependencies": {
     "express": "^4.18.2",
