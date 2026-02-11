@@ -1,35 +1,52 @@
-name: Deploy Frontend to GitHub Pages
+name: Deploy Frontend
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm install
 
       - name: Build
         working-directory: ./frontend
         run: npm run build
         env:
           VITE_API_URL: https://blaze-business-os-api-production.up.railway.app
-          VITE_CLERK_PUBLISHABLE_KEY: pk_test_YWJvdmUtd2hpcHBldC0zNi5jbGVray5hY2NvdW50cy5kZXYk
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_YWJvdmUtd2hpcHBldC0zNi5jbGVyay5hY2NvdW50cy5kZXYk
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './frontend/dist'
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend/dist
+        id: deployment
+        uses: actions/deploy-pages@v4
