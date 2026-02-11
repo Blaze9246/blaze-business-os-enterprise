@@ -4,7 +4,7 @@
   "homepage": ".",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build --emptyOutDir",
     "preview": "vite preview"
   },
   "dependencies": {
