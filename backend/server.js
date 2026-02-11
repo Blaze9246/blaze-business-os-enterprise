@@ -7,6 +7,10 @@ require('dotenv').config();
 // Integration modules
 const ShopifyIntegration = require('./integrations/shopify');
 const OmnisendIntegration = require('./integrations/omnisend');
+const ScriptManager = require('./integrations/scriptManager');
+
+// Initialize script manager
+const scriptManager = new ScriptManager();
 
 // Database connection
 const pool = new Pool({
@@ -460,6 +464,58 @@ fastify.post('/api/omnisend/campaigns', { preHandler: [fastify.authenticate] }, 
     return campaign;
   } catch (error) {
     return { error: error.message };
+  }
+});
+
+// SCRIPT EXECUTION ROUTES
+
+// Get available scripts
+fastify.get('/api/scripts', { preHandler: [fastify.authenticate] }, async () => {
+  return scriptManager.getAvailableScripts();
+});
+
+// Execute a script
+fastify.post('/api/scripts/:scriptId/execute', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  const { scriptId } = request.params;
+  const params = request.body || {};
+  
+  try {
+    const result = await scriptManager.executeScript(scriptId, params);
+    reply.code(202);
+    return result;
+  } catch (error) {
+    reply.code(400);
+    return { error: error.message };
+  }
+});
+
+// Get execution status
+fastify.get('/api/scripts/executions/:executionId', { preHandler: [fastify.authenticate] }, async (request) => {
+  const { executionId } = request.params;
+  const status = scriptManager.getExecutionStatus(executionId);
+  
+  if (!status) {
+    return { error: 'Execution not found' };
+  }
+  
+  return status;
+});
+
+// Get all running executions
+fastify.get('/api/scripts/executions', { preHandler: [fastify.authenticate] }, async () => {
+  return scriptManager.getRunningExecutions();
+});
+
+// Stop execution
+fastify.post('/api/scripts/executions/:executionId/stop', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  const { executionId } = request.params;
+  const stopped = scriptManager.stopExecution(executionId);
+  
+  if (stopped) {
+    return { success: true, message: 'Execution stopped' };
+  } else {
+    reply.code(400);
+    return { error: 'Execution not found or already completed' };
   }
 });
 
