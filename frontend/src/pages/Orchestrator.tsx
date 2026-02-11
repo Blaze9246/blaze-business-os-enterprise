@@ -198,7 +198,7 @@ function AgentNode({ agent, isSubAgent = false }: { agent: Agent; isSubAgent?: b
         <div className="mt-4 pt-4 border-t border-border/50 space-y-3">
           <p className="text-xs text-gray-500 font-medium">Sub-agents</p>
           {agent.subAgents.map(sub => (
-            <AgentNode key={sub.id} agent={sub} isSubAgent /u003e
+            <AgentNode key={sub.id} agent={sub} isSubAgent />
           ))}
         </div>
       )}
