@@ -1,848 +1,1344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blaze Business OS</title>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Clerk -->
-    <script async crossorigin="anonymous" 
-        data-clerk-publishable-key="pk_test_YWJvdmUtd2hpcHBldC0zNi5jbGVyay5hY2NvdW50cy5kZXYk"
-        src="https://above-whippet-36.clerk.accounts.dev/npm/@clerk/clerk-js@4/dist/clerk.browser.js"
-        type="text/javascript">
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blaze Business OS Enterprise</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #151520;
+      --bg-tertiary: #1a1a2e;
+      --accent: #ff6b35;
+      --accent2: #f7931e;
+      --text-primary: #ffffff;
+      --text-secondary: #8b8b9e;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#0A0A0B',
-                        card: '#131316',
-                        accent: '#8B5CF6',
-                        'accent-hover': '#7C3AED',
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0A0A0B;
-            color: white;
-            overflow: hidden;
-        }
-        
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .glass-card {
-            background: rgba(19, 19, 22, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        
-        .glow { box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .dragging { opacity: 0.5; transform: scale(1.02) rotate(2deg); }
-        
-        .kanban-column { min-height: 200px; transition: all 0.2s; }
-        .kanban-column.drag-over {
-            background: rgba(139, 92, 246, 0.1);
-            border: 2px dashed rgba(139, 92, 246, 0.3);
-        }
-        
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.8); }
-        }
-        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
-        
-        /* Chat styles */
-        .chat-message {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            margin-bottom: 12px;
-        }
-        .chat-user { background: #8B5CF6; margin-left: auto; }
-        .chat-assistant { background: rgba(255,255,255,0.1); }
-        
-        /* Progress bar animation */
-        @keyframes progress-shine {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .progress-animated {
-            background: linear-gradient(90deg, #8B5CF6 0%, #A78BFA 50%, #8B5CF6 100%);
-            background-size: 200% 100%;
-            animation: progress-shine 2s linear infinite;
-        }
-    </style>
+    /* ─── Glass Card ──────────────────────────────────────────────────── */
+    .glass {
+      background: rgba(21, 21, 32, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+    }
+    .glass:hover {
+      border-color: rgba(255, 107, 53, 0.2);
+      box-shadow: 0 0 30px rgba(255, 107, 53, 0.05);
+    }
+
+    /* ─── Gradient Border ─────────────────────────────────────────────── */
+    .gradient-border {
+      position: relative;
+    }
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,107,53,0.3), rgba(247,147,30,0.1), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* ─── Sidebar ─────────────────────────────────────────────────────── */
+    .sidebar {
+      width: 260px;
+      background: rgba(15, 15, 24, 0.95);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255,255,255,0.04);
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 50;
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+    .sidebar-hidden { transform: translateX(-260px); }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 10px;
+      margin: 2px 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .nav-item:hover { background: rgba(255,107,53,0.08); color: var(--text-primary); }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(247,147,30,0.08));
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+    }
+    .nav-section {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-secondary);
+      padding: 20px 20px 8px;
+      opacity: 0.5;
+    }
+
+    /* ─── Main ─────────────────────────────────────────────────────────── */
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+    .main-full { margin-left: 0; }
+
+    /* ─── Page sections ───────────────────────────────────────────────── */
+    .page { display: none; padding: 24px; }
+    .page.active { display: block; }
+
+    /* ─── Stat Card ───────────────────────────────────────────────────── */
+    .stat-card {
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .stat-card .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+    .stat-card .stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      opacity: 0.06;
+    }
+    .stat-orange::after { background: var(--accent); }
+    .stat-green::after { background: var(--success); }
+    .stat-blue::after { background: var(--info); }
+    .stat-gold::after { background: var(--accent2); }
+    .stat-red::after { background: var(--danger); }
+
+    /* ─── Table ────────────────────────────────────────────────────────── */
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .data-table thead th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .data-table tbody tr {
+      transition: background 0.2s;
+    }
+    .data-table tbody tr:hover {
+      background: rgba(255,107,53,0.04);
+    }
+    .data-table td {
+      padding: 12px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      vertical-align: middle;
+    }
+
+    /* ─── Badges ───────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .badge-hot { background: rgba(239,68,68,0.15); color: #f87171; }
+    .badge-warm { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .badge-cold { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .badge-ice { background: rgba(139,139,158,0.15); color: #8b8b9e; }
+
+    /* ─── Agent Card ──────────────────────────────────────────────────── */
+    .agent-card { padding: 20px; }
+    .agent-status {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-running { background: var(--success); box-shadow: 0 0 8px rgba(34,197,94,0.5); animation: pulse-dot 2s infinite; }
+    .status-idle { background: var(--text-secondary); }
+    .status-error { background: var(--danger); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ─── Buttons ──────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      outline: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(255,107,53,0.3); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+
+    /* ─── Modal ─────────────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 28px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%238b8b9e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+      background-position: right 10px center;
+      background-repeat: no-repeat;
+      background-size: 20px;
+    }
+
+    /* ─── Score Bar ────────────────────────────────────────────────────── */
+    .score-bar {
+      width: 60px;
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    /* ─── Tool Card ────────────────────────────────────────────────────── */
+    .tool-card {
+      padding: 20px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .tool-card:hover {
+      border-color: rgba(255,107,53,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255,107,53,0.1);
+    }
+    .tool-card .tool-number {
+      position: absolute;
+      top: 12px; right: 16px;
+      font-size: 48px;
+      font-weight: 800;
+      opacity: 0.04;
+      line-height: 1;
+    }
+
+    /* ─── Topbar ───────────────────────────────────────────────────────── */
+    .topbar {
+      height: 64px;
+      background: rgba(10,10,15,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    /* ─── Toast ─────────────────────────────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      top: 80px; right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+      max-width: 380px;
+    }
+    .toast-success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+    .toast-error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .toast-info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+    @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+
+    /* ─── Loading Skeleton ─────────────────────────────────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ─── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-260px); }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .main-content { margin-left: 0 !important; }
+    }
+    @media (max-width: 640px) {
+      .stat-card .stat-value { font-size: 22px; }
+      .page { padding: 16px; }
+    }
+
+    /* ─── Sync Spinner ─────────────────────────────────────────────────── */
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
-<body class="bg-[#0A0A0B] text-white antialiased">
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect, useContext, createContext, useRef } = React;
-        
-        // API Configuration
-        const API_URL = 'https://blaze-business-os-prod.onrender.com';
-        
-        // --- Icons Component ---
-        const Icon = ({ name, size = 20, className = "" }) => {
-            useEffect(() => {
-                if (window.lucide) window.lucide.createIcons();
-            }, [name]);
-            return <i data-lucide={name} width={size} height={size} className={className}></i>;
-        };
+<body>
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- TOAST CONTAINER                                                        -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="toast-container" id="toastContainer"></div>
 
-        // --- Storage ---
-        const Storage = {
-            get: (key, defaultValue) => {
-                try {
-                    const item = localStorage.getItem(key);
-                    return item ? JSON.parse(item) : defaultValue;
-                } catch (e) { return defaultValue; }
-            },
-            set: (key, value) => localStorage.setItem(key, JSON.stringify(value))
-        };
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- SIDEBAR                                                                -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div style="padding: 20px 20px 12px; display: flex; align-items: center; gap: 12px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#ff6b35,#f7931e);display:flex;align-items:center;justify-content:center;font-size:20px;">🔥</div>
+      <div>
+        <div style="font-size:16px;font-weight:800;letter-spacing:-0.5px;">Blaze<span style="color:var(--accent)">OS</span></div>
+        <div style="font-size:10px;color:var(--text-secondary);font-weight:500;">ENTERPRISE v1.0</div>
+      </div>
+    </div>
 
-        // --- Mock Data ---
-        const defaultTasks = [
-            { id: '1', title: 'Review Q4 Marketing Plan', description: 'Analyze performance metrics', status: 'todo', priority: 'high', assignee: 'JD', dueDate: '2024-02-15' },
-            { id: '2', title: 'Update Shopify Product Feed', description: 'Sync inventory with store', status: 'inprogress', priority: 'medium', assignee: 'AS', dueDate: '2024-02-12' },
-            { id: '3', title: 'Hunter Agent Configuration', description: 'Set up lead scoring rules', status: 'review', priority: 'high', assignee: 'MK', dueDate: '2024-02-10' },
-            { id: '4', title: 'Client Report Generation', description: 'Monthly analytics report', status: 'done', priority: 'low', assignee: 'TL', dueDate: '2024-02-08' }
-        ];
+    <div class="nav-section">Command Center</div>
+    <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+      <span>📊</span> Dashboard
+    </div>
+    <div class="nav-item" data-page="leads" onclick="navigateTo('leads')">
+      <span>🎯</span> Leads
+    </div>
+    <div class="nav-item" data-page="agents" onclick="navigateTo('agents')">
+      <span>🤖</span> Agents
+    </div>
+    <div class="nav-item" data-page="tasks" onclick="navigateTo('tasks')">
+      <span>📋</span> Tasks
+    </div>
 
-        const defaultAgents = [
-            { id: 'hunter', name: 'Hunter Agent', description: 'Daily lead discovery', type: 'hunter', status: 'running', lastRun: '2 min ago', progress: 100, stats: { found: 10, qualified: 8 }, color: 'from-orange-500 to-red-500', subAgents: [
-                { id: 'hunter-1', name: 'Store Scraper', role: 'Scraper', progress: 100, status: 'completed' },
-                { id: 'hunter-2', name: 'Email Finder', role: 'Finder', progress: 100, status: 'completed' }
-            ]},
-            { id: 'outreach', name: 'Outreach Agent', description: 'Cold email campaigns', type: 'outreach', status: 'running', lastRun: '15 min ago', progress: 45, stats: { sent: 23, opened: 8 }, color: 'from-blue-500 to-cyan-500', subAgents: [
-                { id: 'outreach-1', name: 'Template Engine', role: 'Writer', progress: 100, status: 'completed' },
-                { id: 'outreach-2', name: 'Email Sender', role: 'Sender', progress: 45, status: 'working' }
-            ]},
-            { id: 'creator', name: 'Creator Agent', description: 'Instagram content', type: 'creator', status: 'running', lastRun: '5 min ago', progress: 78, stats: { posts: 2, stories: 4 }, color: 'from-pink-500 to-purple-500', subAgents: [
-                { id: 'creator-1', name: 'Image Gen', role: 'Designer', progress: 80, status: 'working' },
-                { id: 'creator-2', name: 'Caption Writer', role: 'Writer', progress: 100, status: 'completed' }
-            ]},
-            { id: 'auditor', name: 'Auditor Agent', description: 'Store audits (50+ checks)', type: 'auditor', status: 'idle', lastRun: '1 day ago', progress: 0, stats: { audits: 12, issues: 3 }, color: 'from-green-500 to-emerald-500' },
-            { id: 'operator', name: 'Operator Agent', description: 'System sync', type: 'operator', status: 'running', lastRun: 'Just now', progress: 100, stats: { syncs: 144, errors: 0 }, color: 'from-purple-500 to-indigo-500' },
-            { id: 'reporter', name: 'Reporter Agent', description: 'Daily briefings', type: 'reporter', status: 'idle', lastRun: '3 hours ago', progress: 0, stats: { reports: 2, clients: 5 }, color: 'from-yellow-500 to-orange-500' }
-        ];
+    <div class="nav-section">Integrations</div>
+    <div class="nav-item" data-page="systeme" onclick="navigateTo('systeme')">
+      <span>🔗</span> Systeme.io
+    </div>
 
-        const defaultLeads = [
-            { id: '1', name: 'John Smith', email: 'john@acme.com', company: 'Acme Corp', score: 92, tier: 'HOT', source: 'Hunter Agent', lastActivity: '2 min ago' },
-            { id: '2', name: 'Sarah Johnson', email: 'sarah@tech.co', company: 'TechStart Inc', score: 78, tier: 'WARM', source: 'Website', lastActivity: '1 hour ago' },
-            { id: '3', name: 'Mike Chen', email: 'mike@global.com', company: 'Global Solutions', score: 45, tier: 'COLD', source: 'LinkedIn', lastActivity: '2 days ago' },
-            { id: '4', name: 'Emma Davis', email: 'emma@frozen.io', company: 'Frozen Systems', score: 12, tier: 'ICE', source: 'Outreach', lastActivity: '1 week ago' },
-            { id: '5', name: 'Alex Rivera', email: 'alex@scaleup.com', company: 'ScaleUp Inc', score: 85, tier: 'HOT', source: 'Referral', lastActivity: '5 min ago' }
-        ];
+    <div class="nav-section">Midnight Magic</div>
+    <div class="nav-item" data-page="tools" onclick="navigateTo('tools')">
+      <span>🛠️</span> Tools (14)
+    </div>
 
-        // --- Auth Context ---
-        const AuthContext = createContext(null);
-        const AuthProvider = ({ children }) => {
-            const [user, setUser] = useState(null);
-            const [loading, setLoading] = useState(true);
+    <div class="nav-section">Settings</div>
+    <div class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+      <span>⚙️</span> Configuration
+    </div>
 
-            useEffect(() => {
-                const checkAuth = async () => {
-                    if (window.Clerk) {
-                        await window.Clerk.load();
-                        if (window.Clerk.user) setUser(window.Clerk.user);
-                    } else {
-                        setUser({ id: 'demo', email: 'demo@blaze.os', firstName: 'Demo' });
-                    }
-                    setLoading(false);
-                };
-                checkAuth();
-            }, []);
+    <!-- Bottom user area -->
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:10px;">
+      <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#ff6b35,#f7931e);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;">Z</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Zain Moolla</div>
+        <div style="font-size:11px;color:var(--text-secondary);">Blaze Ignite</div>
+      </div>
+    </div>
+  </aside>
 
-            const signIn = async () => {
-                if (window.Clerk) window.Clerk.openSignIn();
-                else setUser({ id: 'demo', email: 'demo@blaze.os', firstName: 'Demo' });
-            };
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- MAIN CONTENT                                                           -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="main-content" id="mainContent">
 
-            const signOut = async () => {
-                if (window.Clerk) await window.Clerk.signOut();
-                setUser(null);
-            };
+    <!-- ─── TOPBAR ──────────────────────────────────────────────────────── -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button onclick="toggleSidebar()" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">☰</button>
+        <div>
+          <div style="font-size:16px;font-weight:700;" id="pageTitle">Dashboard</div>
+          <div style="font-size:11px;color:var(--text-secondary);" id="pageSubtitle">Command Center Overview</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:12px;color:var(--text-secondary);" id="liveTime"></span>
+        <div id="apiStatus" style="display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(239,68,68,0.1);color:#f87171;">
+          <span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>
+          OFFLINE
+        </div>
+      </div>
+    </div>
 
-            return (
-                <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
-                    {children}
-                </AuthContext.Provider>
-            );
-        };
-        const useAuth = () => useContext(AuthContext);
-
-        // --- Sidebar ---
-        const Sidebar = ({ currentPage, setPage }) => {
-            const { signOut } = useAuth();
-            const navItems = [
-                { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
-                { id: 'tasks', label: 'Tasks', icon: 'check-square' },
-                { id: 'agents', label: 'AI Agents', icon: 'bot' },
-                { id: 'orchestrator', label: 'Orchestrator', icon: 'git-branch' },
-                { id: 'stores', label: 'Stores', icon: 'store' },
-                { id: 'leads', label: 'Leads', icon: 'users' },
-                { id: 'workflows', label: 'Workflows', icon: 'workflow' },
-                { id: 'reports', label: 'Reports', icon: 'bar-chart-3' },
-                { id: 'chat', label: 'Chat with Blaze', icon: 'message-circle' },
-                { id: 'settings', label: 'Settings', icon: 'settings' },
-            ];
-
-            return (
-                <aside className="w-64 h-screen glass-card border-r border-white/10 flex flex-col fixed left-0 top-0 z-50">
-                    <div className="p-6 flex items-center gap-3 border-b border-white/5">
-                        <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center glow">
-                            <Icon name="flame" size={20} className="text-white" />
-                        </div>
-                        <span className="font-bold text-xl tracking-tight">Blaze OS</span>
-                    </div>
-                    
-                    <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-                        {navItems.map((item) => (
-                            <button
-                                key={item.id}
-                                onClick={() => setPage(item.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                                    currentPage === item.id 
-                                    ? 'bg-accent/20 text-accent border border-accent/30' 
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                }`}
-                            >
-                                <Icon name={item.icon} size={18} />
-                                {item.label}
-                            </button>
-                        ))}
-                    </nav>
-                    
-                    <div className="p-4 border-t border-white/10">
-                        <button 
-                            onClick={signOut}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                            <Icon name="log-out" size={16} />
-                            Sign Out
-                        </button>
-                    </div>
-                </aside>
-            );
-        };
-
-        // --- Chat Page (NEW) ---
-        const Chat = () => {
-            const [messages, setMessages] = useState([
-                { id: 1, role: 'assistant', content: 'Hey Zain! 👋 I\'m Blaze, your AI automation architect. What can I help you with today?', timestamp: new Date() }
-            ]);
-            const [input, setInput] = useState('');
-            const [loading, setLoading] = useState(false);
-            const messagesEndRef = useRef(null);
-
-            const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            useEffect(() => scrollToBottom(), [messages]);
-
-            const handleSend = async () => {
-                if (!input.trim() || loading) return;
-                
-                const userMsg = { id: Date.now(), role: 'user', content: input, timestamp: new Date() };
-                setMessages(prev => [...prev, userMsg]);
-                setInput('');
-                setLoading(true);
-
-                // Simulate AI response
-                setTimeout(() => {
-                    const responses = {
-                        'hello': 'Hey! Ready to automate some workflows? 🔥',
-                        'status': 'All 6 AI agents are operational. Hunter Agent found 10 new leads.',
-                        'leads': 'Last run: 10 qualified leads found. Want me to export them?',
-                        'export': 'I\'ll export your leads to CSV now!'
-                    };
-                    const lower = input.toLowerCase();
-                    let response = 'I\'m on it! Let me process that for you. 🔥';
-                    for (const [key, val] of Object.entries(responses)) {
-                        if (lower.includes(key)) { response = val; break; }
-                    }
-                    
-                    setMessages(prev => [...prev, { 
-                        id: Date.now() + 1, 
-                        role: 'assistant', 
-                        content: response, 
-                        timestamp: new Date() 
-                    }]);
-                    setLoading(false);
-                }, 1500);
-            };
-
-            return (
-                <div className="h-full flex flex-col">
-                    <div className="flex items-center gap-3 px-6 py-4 border-b border-white/10">
-                        <div className="w-10 h-10 bg-gradient-to-br from-accent to-purple-400 rounded-full flex items-center justify-center">
-                            <Icon name="bot" size={20} className="text-white" />
-                        </div>
-                        <div>
-                            <h2 className="font-semibold text-white">Blaze Assistant</h2>
-                            <p className="text-sm text-green-400">● Online • Synced to WhatsApp</p>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                        {messages.map((msg) => (
-                            <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-white/10' : 'bg-gradient-to-br from-accent to-purple-400'}`}>
-                                    <Icon name={msg.role === 'user' ? 'user' : 'bot'} size={16} className="text-white" />
-                                </div>
-                                <div className={`chat-message ${msg.role === 'user' ? 'chat-user' : 'chat-assistant'}`}>
-                                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                                    <div className="text-xs mt-1 opacity-60">{msg.timestamp.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                                </div>
-                            </div>
-                        ))}
-                        {loading && (
-                            <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-purple-400 flex items-center justify-center">
-                                    <Icon name="bot" size={16} className="text-white" />
-                                </div>
-                                <div className="chat-message chat-assistant">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce"></div>
-                                        <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay:'0.1s'}}></div>
-                                        <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay:'0.2s'}}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    <div className="p-4 border-t border-white/10">
-                        <div className="flex items-end gap-2 bg-white/5 rounded-xl p-2">
-                            <textarea
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-                                placeholder="Ask Blaze anything..."
-                                className="flex-1 bg-transparent text-white placeholder-gray-500 resize-none outline-none min-h-[40px] max-h-[120px] py-2 px-2"
-                                rows={1}
-                            />
-                            <button
-                                onClick={handleSend}
-                                disabled={!input.trim() || loading}
-                                className={`p-2 rounded-lg transition-colors ${input.trim() && !loading ? 'bg-accent hover:bg-accent-hover text-white' : 'bg-white/5 text-gray-500 cursor-not-allowed'}`}
-                            >
-                                <Icon name="send" size={20} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- Orchestrator Page (NEW) ---
-        const Orchestrator = () => {
-            const [agents] = useState(defaultAgents);
-            const overallProgress = Math.round(agents.reduce((acc, a) => acc + a.progress, 0) / agents.length);
-
-            const statusColors = {
-                idle: 'bg-gray-500',
-                running: 'bg-amber-500 animate-pulse',
-                completed: 'bg-green-500',
-                error: 'bg-red-500',
-                working: 'bg-amber-500 animate-pulse'
-            };
-
-            return (
-                <div className="p-6">
-                    <h1 className="text-3xl font-bold text-white mb-2">Task Orchestrator</h1>
-                    <p className="text-gray-400 mb-8">Visualize task delegation and agent progress</p>
-
-                    {/* Blaze Orchestrator Node */}
-                    <div className="glass-card rounded-xl p-6 mb-8 bg-gradient-to-r from-accent/20 to-purple-500/20 border-accent/30">
-                        <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-accent to-purple-500 rounded-2xl flex items-center justify-center text-3xl">🔥</div>
-                            <div className="flex-1">
-                                <h2 className="text-xl font-bold text-white">Blaze Orchestrator</h2>
-                                <p className="text-gray-400">Managing 6 AI Agents</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-400">Overall Progress</p>
-                                <p className="text-3xl font-bold text-accent">{overallProgress}%</p>
-                            </div>
-                        </div>
-                        <div className="mt-4 h-3 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full progress-animated rounded-full" style={{width: `${overallProgress}%`}} />
-                        </div>
-                    </div>
-
-                    {/* Connection */}
-                    <div className="flex justify-center mb-8">
-                        <div className="flex flex-col items-center">
-                            <div className="w-px h-8 bg-gradient-to-b from-accent to-gray-600" />
-                            <span className="text-sm text-gray-500">Delegating to 6 AI Agents</span>
-                            <div className="w-px h-8 bg-gradient-to-b from-gray-600 to-transparent" />
-                        </div>
-                    </div>
-
-                    {/* Agent Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {agents.map((agent) => (
-                            <div key={agent.id} className={`glass-card rounded-xl p-4 ${agent.status === 'running' ? 'ring-2 ring-accent/50' : ''}`}>
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-2xl">{agent.type === 'hunter' ? '🎯' : agent.type === 'outreach' ? '📤' : agent.type === 'creator' ? '🎨' : agent.type === 'auditor' ? '🔍' : agent.type === 'operator' ? '🔄' : '📊'}</div>
-                                        <div>
-                                            <h3 className="font-semibold text-white">{agent.name}</h3>
-                                            <p className="text-xs text-gray-400">{agent.description}</p>
-                                        </div>
-                                    </div>
-                                    <div className={`w-2 h-2 rounded-full ${statusColors[agent.status]}`} />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-xs">
-                                        <span className="text-gray-400">Progress</span>
-                                        <span className={agent.progress === 100 ? 'text-green-400' : 'text-white'}>{agent.progress}%</span>
-                                    </div>
-                                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <div className={`h-full rounded-full ${agent.progress === 100 ? 'bg-green-500' : 'bg-accent'}`} style={{width: `${agent.progress}%`}} />
-                                    </div>
-                                </div>
-
-                                {agent.subAgents && (
-                                    <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
-                                        <p className="text-xs text-gray-500">Sub-agents</p>
-                                        {agent.subAgents.map(sub => (
-                                            <div key={sub.id} className="flex items-center justify-between text-sm bg-white/5 rounded-lg p-2">
-                                                <span className="text-gray-300">{sub.name}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                                        <div className={`h-full ${sub.progress === 100 ? 'bg-green-500' : 'bg-amber-500'} rounded-full`} style={{width: `${sub.progress}%`}} />
-                                                    </div>
-                                                    <span className="text-xs text-gray-500">{sub.progress}%</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
-        // --- Leads Page with CSV Export (UPDATED) ---
-        const Leads = () => {
-            const [leads, setLeads] = useState([]);
-            const [loading, setLoading] = useState(true);
-            const [exporting, setExporting] = useState(false);
-
-            useEffect(() => {
-                fetch('/api/leads')
-                    .then(res => res.json())
-                    .then(data => {
-                        setLeads(data);
-                        setLoading(false);
-                    })
-                    .catch(err => {
-                        console.error('Failed to load leads:', err);
-                        setLeads(defaultLeads);
-                        setLoading(false);
-                    });
-            }, []);
-
-            const exportToCSV = () => {
-                setExporting(true);
-                const headers = ['Name', 'Company', 'Email', 'Score', 'Tier', 'Source', 'Last Activity'];
-                const rows = leads.map(l => [l.name, l.company, l.email, l.score, l.tier, l.source, l.lastActivity]);
-                const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
-                
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `blaze-leads-${new Date().toISOString().split('T')[0]}.csv`;
-                link.click();
-                
-                setTimeout(() => setExporting(false), 1000);
-            };
-
-            const tiers = {
-                HOT: { color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: 'flame' },
-                WARM: { color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: 'thermometer' },
-                COLD: { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: 'snowflake' },
-                ICE: { color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', icon: 'snowflake' }
-            };
-
-            return (
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-8">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white">Leads</h1>
-                            <p className="text-gray-400">Track and manage your sales pipeline</p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={exportToCSV}
-                                disabled={exporting}
-                                className="glass px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-white/10 disabled:opacity-50"
-                            >
-                                {exporting ? 'Exporting...' : <><Icon name="download" size={16} /> Export CSV</>}
-                            </button>
-                            <button className="bg-accent hover:bg-accent-hover px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                + Add Lead
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="glass-card rounded-xl overflow-hidden">
-                    {loading ? (
-                        <div className="p-8 text-center text-gray-400">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4"></div>
-                            Loading leads from database...
-                        </div>
-                    ) : (
-                        <table className="w-full">
-                            <thead className="bg-white/5 border-b border-white/10">
-                                <tr>
-                                    {['Lead', 'Company', 'Score', 'Tier', 'Source', 'Activity'].map(h => (
-                                        <th key={h} className="text-left py-4 px-6 text-xs font-medium text-gray-400 uppercase">{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {leads.map((lead) => {
-                                    const tier = tiers[lead.tier];
-                                    return (
-                                        <tr key={lead.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="py-4 px-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-blue-500 flex items-center justify-center text-sm font-bold text-white">
-                                                        {lead.name.split(' ').map(n => n[0]).join('')}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-medium text-white">{lead.name}</div>
-                                                        <div className="text-sm text-gray-500">{lead.email}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-gray-300">{lead.company}</td>
-                                            <td className="py-4 px-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-accent rounded-full" style={{ width: `${lead.score}%` }} />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-white">{lead.score}</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6">
-                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${tier.color}`}>
-                                                    <Icon name={tier.icon} size={12} />
-                                                    {lead.tier}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-6 text-gray-300">{lead.source}</td>
-                                            <td className="py-4 px-6 text-gray-500">{lead.date || lead.lastActivity}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    )}
-                    </div>
-                </div>
-            );
-        };
-
-        // --- Other Pages (Simplified) ---
-        const Dashboard = () => (
-            <div className="p-6 space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-                    <p className="text-gray-400">Welcome back to Blaze Business OS</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[
-                        { label: 'Total Revenue', value: '$48,294', change: '+12.5%', up: true, icon: 'trending-up' },
-                        { label: 'Active Leads', value: '1,284', change: '+8.2%', up: true, icon: 'users' },
-                        { label: 'Store Orders', value: '856', change: '-2.1%', up: false, icon: 'shopping-bag' },
-                        { label: 'AI Tasks', value: '2,453', change: '+24.0%', up: true, icon: 'zap' },
-                    ].map((stat, i) => (
-                        <div key={i} className="glass-card rounded-xl p-6 hover:border-accent/30 transition-all">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-2 bg-accent/20 rounded-lg">
-                                    <Icon name={stat.icon} size={20} className="text-accent" />
-                                </div>
-                                <span className={`flex items-center gap-1 text-xs font-medium ${stat.up ? 'text-green-400' : 'text-red-400'}`}>
-                                    <Icon name={stat.up ? 'arrow-up-right' : 'arrow-down-right'} size={12} />
-                                    {stat.change}
-                                </span>
-                            </div>
-                            <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                            <div className="text-sm text-gray-400">{stat.label}</div>
-                        </div>
-                    ))}
-                </div>
-                <div className="glass-card rounded-xl p-6">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Icon name="activity" size={20} className="text-accent" />
-                        Recent Activity
-                    </h3>
-                    <div className="space-y-3">
-                        {[
-                            'Hunter Agent found 10 new leads',
-                            'Shopify sync completed',
-                            'Outreach campaign sent to 45 contacts',
-                            'New high-value lead: Acme Corp'
-                        ].map((action, i) => (
-                            <div key={i} className="flex gap-3 items-center py-2 border-b border-white/5 last:border-0">
-                                <div className="w-2 h-2 rounded-full bg-accent" />
-                                <p className="text-sm text-gray-300">{action}</p>
-                                <span className="text-xs text-gray-500 ml-auto">{i + 2} min ago</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: DASHBOARD                                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <!-- Stats Row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;" id="statsGrid">
+        <div class="glass stat-card stat-orange gradient-border">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Total Leads</div>
+              <div class="stat-value" id="stat-leads">—</div>
             </div>
-        );
-
-        const Tasks = () => {
-            const [tasks] = useState(Storage.get('blaze_tasks', defaultTasks));
-            const columns = [
-                { id: 'todo', title: 'To Do', color: 'bg-gray-500' },
-                { id: 'inprogress', title: 'In Progress', color: 'bg-blue-500' },
-                { id: 'review', title: 'Review', color: 'bg-yellow-500' },
-                { id: 'done', title: 'Done', color: 'bg-green-500' },
-            ];
-            return (
-                <div className="p-6">
-                    <h1 className="text-3xl font-bold text-white mb-6">Tasks</h1>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {columns.map(col => (
-                            <div key={col.id} className="glass-card rounded-xl p-4">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className={`w-3 h-3 rounded-full ${col.color}`} />
-                                    <h3 className="font-semibold text-white">{col.title}</h3>
-                                    <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full ml-auto">
-                                        {tasks.filter(t => t.status === col.id).length}
-                                    </span>
-                                </div>
-                                <div className="space-y-3">
-                                    {tasks.filter(t => t.status === col.id).map(task => (
-                                        <div key={task.id} className="glass p-3 rounded-lg hover:border-accent/30 transition-all cursor-pointer">
-                                            <h4 className="text-sm font-medium text-white mb-1">{task.title}</h4>
-                                            <p className="text-xs text-gray-400">{task.description}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
-        const AIAgents = () => {
-            const [agents] = useState(defaultAgents);
-            return (
-                <div className="p-6">
-                    <h1 className="text-3xl font-bold text-white mb-6">AI Agents</h1>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {agents.map(agent => (
-                            <div key={agent.id} className="glass-card rounded-xl p-6 hover:border-accent/30 transition-all">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center`}>
-                                        <Icon name={agent.type === 'hunter' ? 'target' : agent.type === 'outreach' ? 'mail' : agent.type === 'creator' ? 'image' : agent.type === 'auditor' ? 'search' : agent.type === 'operator' ? 'refresh-cw' : 'file-text'} size={24} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-white">{agent.name}</h3>
-                                        <p className="text-xs text-gray-400">{agent.status} • {agent.lastRun}</p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {Object.entries(agent.stats).map(([key, val]) => (
-                                        <div key={key} className="bg-white/5 rounded-lg p-3">
-                                            <div className="text-lg font-bold text-white">{val}</div>
-                                            <div className="text-xs text-gray-500 capitalize">{key}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
-        const Stores = () => (
-            <div className="p-6">
-                <h1 className="text-3xl font-bold text-white mb-6">Stores</h1>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {[
-                        { name: 'Main Shopify Store', url: 'mystore.myshopify.com', orders: 1234, products: 456, revenue: '$45.2k' },
-                        { name: 'WooCommerce Site', url: 'shop.example.com', orders: 567, products: 234, revenue: '$23.1k' }
-                    ].map((store, i) => (
-                        <div key={i} className="glass-card rounded-xl p-6">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="w-14 h-14 rounded-xl bg-[#96BF48] flex items-center justify-center">
-                                    <Icon name="shopping-bag" size={28} className="text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-white">{store.name}</h3>
-                                    <p className="text-sm text-gray-400">{store.url}</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="bg-white/5 rounded-lg p-3 text-center">
-                                    <div className="text-lg font-bold text-white">{store.orders}</div>
-                                    <div className="text-xs text-gray-500">Orders</div>
-                                </div>
-                                <div className="bg-white/5 rounded-lg p-3 text-center">
-                                    <div className="text-lg font-bold text-white">{store.products}</div>
-                                    <div className="text-xs text-gray-500">Products</div>
-                                </div>
-                                <div className="bg-white/5 rounded-lg p-3 text-center">
-                                    <div className="text-lg font-bold text-white">{store.revenue}</div>
-                                    <div className="text-xs text-gray-500">Revenue</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+            <div class="stat-icon" style="background:rgba(255,107,53,0.12);">🎯</div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--success);font-weight:600;">↑ synced</div>
+        </div>
+        <div class="glass stat-card stat-green gradient-border">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Revenue (est.)</div>
+              <div class="stat-value" id="stat-revenue">—</div>
             </div>
-        );
-
-        const Placeholder = ({ title, icon }) => (
-            <div className="flex items-center justify-center h-64 text-gray-400">
-                <div className="text-center">
-                    <Icon name={icon} size={48} className="mx-auto mb-4 opacity-50" />
-                    <h3 className="text-lg font-medium text-white mb-2">{title}</h3>
-                    <p>Coming soon...</p>
-                </div>
+            <div class="stat-icon" style="background:rgba(34,197,94,0.12);">💰</div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--success);font-weight:600;">from lead tiers</div>
+        </div>
+        <div class="glass stat-card stat-blue gradient-border">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Agents Active</div>
+              <div class="stat-value" id="stat-agents">—</div>
             </div>
-        );
-
-        const Settings = () => (
-            <div className="p-6 max-w-2xl">
-                <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
-                <div className="glass-card rounded-xl p-6 space-y-6">
-                    <div>
-                        <h3 className="text-lg font-semibold text-white mb-4">Profile</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm text-gray-400 mb-1">Display Name</label>
-                                <input type="text" defaultValue="Zain" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent/50" />
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-400 mb-1">Email</label>
-                                <input type="email" defaultValue="zain@blazeignite.com" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent/50" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-icon" style="background:rgba(59,130,246,0.12);">🤖</div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--text-secondary);font-weight:600;">4 deployed</div>
+        </div>
+        <div class="glass stat-card stat-gold gradient-border">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Pending Tasks</div>
+              <div class="stat-value" id="stat-tasks">—</div>
             </div>
-        );
+            <div class="stat-icon" style="background:rgba(247,147,30,0.12);">📋</div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--warning);font-weight:600;">in queue</div>
+        </div>
+        <div class="glass stat-card stat-red gradient-border">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Hot Leads</div>
+              <div class="stat-value" id="stat-hot">—</div>
+            </div>
+            <div class="stat-icon" style="background:rgba(239,68,68,0.12);">🔥</div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--danger);font-weight:600;">ready to close</div>
+        </div>
+      </div>
 
-        // --- Main App ---
-        const App = () => {
-            const [currentPage, setCurrentPage] = useState('dashboard');
-            const { user, loading, signIn } = useAuth();
+      <!-- Agents Quick Status -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Agent Status</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;" id="dashAgents">
+          <!-- filled by JS -->
+        </div>
+      </div>
 
-            useEffect(() => {
-                if (window.lucide) window.lucide.createIcons();
-            }, [currentPage, user]);
+      <!-- Two columns: Recent Leads + Tasks -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="glass" style="padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:14px;font-weight:700;">Recent Leads</div>
+            <button class="btn btn-xs btn-ghost" onclick="navigateTo('leads')">View All →</button>
+          </div>
+          <div id="dashRecentLeads">
+            <div class="skeleton" style="height:36px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:36px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:36px;margin-bottom:8px;"></div>
+          </div>
+        </div>
+        <div class="glass" style="padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:14px;font-weight:700;">Tasks</div>
+            <button class="btn btn-xs btn-ghost" onclick="navigateTo('tasks')">View All →</button>
+          </div>
+          <div id="dashTasks">
+            <div class="skeleton" style="height:36px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:36px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:36px;margin-bottom:8px;"></div>
+          </div>
+        </div>
+      </div>
 
-            if (loading) {
-                return (
-                    <div className="h-screen flex items-center justify-center bg-background">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-                    </div>
-                );
-            }
+      <!-- Quick Actions -->
+      <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:10px;">
+        <button class="btn btn-primary" onclick="openAddLeadModal()">+ Add Lead</button>
+        <button class="btn btn-ghost" onclick="triggerSync()">🔗 Sync Systeme.io</button>
+        <button class="btn btn-ghost" onclick="seedDatabase()">🌱 Seed Database</button>
+        <button class="btn btn-ghost" onclick="loadAll()">🔄 Refresh</button>
+      </div>
+    </div>
 
-            if (!user) {
-                return (
-                    <div className="h-screen flex items-center justify-center bg-background relative">
-                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-accent/20 via-background to-background"></div>
-                        <div className="relative z-10 text-center p-8 glass-card rounded-2xl max-w-md w-full mx-4">
-                            <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-6 glow">
-                                <Icon name="flame" size={32} className="text-white" />
-                            </div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Blaze Business OS</h1>
-                            <p className="text-gray-400 mb-8">AI-Powered Business Operating System</p>
-                            <button onClick={signIn} className="w-full bg-accent hover:bg-accent-hover text-white font-medium py-3 rounded-lg transition-all">
-                                Sign In
-                            </button>
-                        </div>
-                    </div>
-                );
-            }
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: LEADS                                                       -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-leads">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-xs btn-ghost filter-btn active" data-filter="ALL" onclick="filterLeads('ALL')">All</button>
+          <button class="btn btn-xs btn-ghost filter-btn" data-filter="HOT" onclick="filterLeads('HOT')">🔥 Hot</button>
+          <button class="btn btn-xs btn-ghost filter-btn" data-filter="WARM" onclick="filterLeads('WARM')">🟡 Warm</button>
+          <button class="btn btn-xs btn-ghost filter-btn" data-filter="COLD" onclick="filterLeads('COLD')">🔵 Cold</button>
+          <button class="btn btn-xs btn-ghost filter-btn" data-filter="ICE" onclick="filterLeads('ICE')">🧊 Ice</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="leadSearch" class="form-input" placeholder="Search leads..." style="width:220px;padding:6px 14px;font-size:13px;" oninput="searchLeads()">
+          <button class="btn btn-primary btn-sm" onclick="openAddLeadModal()">+ Add Lead</button>
+        </div>
+      </div>
+      <div class="glass" style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Company</th>
+              <th>Email</th>
+              <th>Score</th>
+              <th>Tier</th>
+              <th>Source</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTableBody">
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">Loading leads...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-secondary);" id="leadsCount"></div>
+    </div>
 
-            const renderPage = () => {
-                switch(currentPage) {
-                    case 'dashboard': return <Dashboard />;
-                    case 'tasks': return <Tasks />;
-                    case 'agents': return <AIAgents />;
-                    case 'orchestrator': return <Orchestrator />;
-                    case 'stores': return <Stores />;
-                    case 'leads': return <Leads />;
-                    case 'workflows': return <Placeholder title="Workflow Builder" icon="workflow" />;
-                    case 'reports': return <Placeholder title="Reports" icon="bar-chart-3" />;
-                    case 'chat': return <Chat />;
-                    case 'settings': return <Settings />;
-                    default: return <Dashboard />;
-                }
-            };
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: AGENTS                                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-agents">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;" id="agentsGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
 
-            return (
-                <div className="flex h-screen bg-background">
-                    <Sidebar currentPage={currentPage} setPage={setCurrentPage} />
-                    <main className="flex-1 ml-64 overflow-auto scrollbar-hide">
-                        {renderPage()}
-                    </main>
-                </div>
-            );
-        };
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: TASKS                                                       -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-tasks">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-xs btn-ghost task-filter active" data-status="all" onclick="filterTasks('all')">All</button>
+          <button class="btn btn-xs btn-ghost task-filter" data-status="pending" onclick="filterTasks('pending')">Pending</button>
+          <button class="btn btn-xs btn-ghost task-filter" data-status="in-progress" onclick="filterTasks('in-progress')">In Progress</button>
+          <button class="btn btn-xs btn-ghost task-filter" data-status="done" onclick="filterTasks('done')">Done</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">+ Add Task</button>
+      </div>
+      <div id="tasksList">
+        <!-- filled by JS -->
+      </div>
+    </div>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(
-            <AuthProvider>
-                <App />
-            </AuthProvider>
-        );
-    </script>
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: SYSTEME.IO                                                  -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-systeme">
+      <div class="glass" style="padding:24px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:18px;font-weight:700;">Systeme.io Integration</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Two-way contact sync between Firestore and Systeme.io</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="triggerSync()" id="syncBtn">
+              <span id="syncIcon">🔗</span> Full Sync
+            </button>
+            <button class="btn btn-ghost" onclick="pullSystemeContacts()">⬇️ Pull Contacts</button>
+          </div>
+        </div>
+      </div>
+      <div class="glass" style="padding:20px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:16px;">Systeme.io Contacts</div>
+        <div id="systemeContacts">
+          <div style="text-align:center;padding:40px;color:var(--text-secondary);">Click "Pull Contacts" to load from Systeme.io</div>
+        </div>
+      </div>
+      <div class="glass" style="padding:20px;margin-top:16px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Sync Log</div>
+        <div id="syncLog" style="font-family:monospace;font-size:12px;color:var(--text-secondary);max-height:200px;overflow-y:auto;">
+          Waiting for sync...
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: TOOLS (Midnight Magic)                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-tools">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:18px;font-weight:700;">Midnight Magic Tools</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">14 power tools for your agency arsenal</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;" id="toolsGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: SETTINGS                                                    -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-settings">
+      <div class="glass" style="padding:24px;max-width:600px;">
+        <div style="font-size:18px;font-weight:700;margin-bottom:20px;">Configuration</div>
+        <div class="form-group">
+          <label class="form-label">API Base URL</label>
+          <input type="text" class="form-input" id="settingsApiUrl" value="" placeholder="https://your-api.railway.app">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Systeme.io API Key</label>
+          <input type="password" class="form-input" id="settingsSystemeKey" value="" placeholder="Enter API key">
+        </div>
+        <div class="form-group">
+          <label class="form-label">HeyGen API Key</label>
+          <input type="password" class="form-input" id="settingsHeygenKey" value="" placeholder="Enter API key">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          <button class="btn btn-ghost" onclick="testConnection()">Test Connection</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main-content -->
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: ADD LEAD                                                        -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="addLeadModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:700;">Add New Lead</div>
+        <button onclick="closeModal('addLeadModal')" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      <form onsubmit="submitLead(event)">
+        <div class="form-group">
+          <label class="form-label">Name *</label>
+          <input type="text" class="form-input" id="leadName" required placeholder="Full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company</label>
+          <input type="text" class="form-input" id="leadCompany" placeholder="Company name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" class="form-input" id="leadEmail" required placeholder="email@example.com">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Score (0-100)</label>
+            <input type="number" class="form-input" id="leadScore" min="0" max="100" value="50" placeholder="50">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tier</label>
+            <select class="form-input form-select" id="leadTier">
+              <option value="HOT">🔥 Hot</option>
+              <option value="WARM" selected>🟡 Warm</option>
+              <option value="COLD">🔵 Cold</option>
+              <option value="ICE">🧊 Ice</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source</label>
+          <select class="form-input form-select" id="leadSource">
+            <option value="manual">Manual Entry</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="instagram">Instagram</option>
+            <option value="referral">Referral</option>
+            <option value="website">Website</option>
+            <option value="cold-email">Cold Email</option>
+            <option value="systeme.io">Systeme.io</option>
+            <option value="scraper">Scraper</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Add Lead</button>
+          <button type="button" class="btn btn-ghost" onclick="closeModal('addLeadModal')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: ADD TASK                                                        -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="addTaskModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:700;">Add New Task</div>
+        <button onclick="closeModal('addTaskModal')" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      <form onsubmit="submitTask(event)">
+        <div class="form-group">
+          <label class="form-label">Title *</label>
+          <input type="text" class="form-input" id="taskTitle" required placeholder="Task description">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select class="form-input form-select" id="taskPriority">
+              <option value="high">🔴 High</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign Agent</label>
+            <select class="form-input form-select" id="taskAgent">
+              <option value="hunter">🎯 Hunter</option>
+              <option value="outreach">📧 Outreach</option>
+              <option value="creator">🎨 Creator</option>
+              <option value="whatsapp">💬 WhatsApp</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Create Task</button>
+          <button type="button" class="btn btn-ghost" onclick="closeModal('addTaskModal')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- JAVASCRIPT                                                             -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <script>
+    // ─── CONFIG ────────────────────────────────────────────────────────────
+    let API_BASE = localStorage.getItem('blaze_api_url') || 'http://localhost:3000';
+    let allLeads = [];
+    let allTasks = [];
+    let allAgents = [];
+    let currentFilter = 'ALL';
+    let currentTaskFilter = 'all';
+
+    // ─── TOOLS DATA ────────────────────────────────────────────────────────
+    const TOOLS = [
+      { num: 1, name: 'Blaze Content Forge', desc: 'Instagram content generator — carousels, reels, captions', icon: '📸', color: '#ff6b35' },
+      { num: 2, name: 'Prospect Hunter', desc: 'Email finder + validator + enrichment', icon: '🔍', color: '#3b82f6' },
+      { num: 3, name: 'Blaze Crystal Ball', desc: 'Lead scoring predictor using AI', icon: '🔮', color: '#8b5cf6' },
+      { num: 4, name: 'Blaze Battle Card', desc: 'Sales intelligence & competitor objection handling', icon: '⚔️', color: '#ef4444' },
+      { num: 5, name: 'Blaze Competitor Tracker', desc: 'Shopify store monitoring & alerts', icon: '👁️', color: '#f59e0b' },
+      { num: 6, name: 'Blaze Proposal Forge', desc: 'Auto-generate client proposals', icon: '📄', color: '#22c55e' },
+      { num: 7, name: 'Blaze Revenue Oracle', desc: 'MRR forecasting & revenue predictions', icon: '📈', color: '#06b6d4' },
+      { num: 8, name: 'Blaze Client Success', desc: 'Onboarding flows + progress reports', icon: '🎓', color: '#ec4899' },
+      { num: 9, name: 'Blaze Lead Warmer', desc: 'Automated email sequences & nurture', icon: '🔥', color: '#f97316' },
+      { num: 10, name: 'Blaze Campaign Architect', desc: 'Ad campaign generator (Meta, Google)', icon: '🏗️', color: '#6366f1' },
+      { num: 11, name: 'Blaze Social Guardian', desc: 'Social listening & brand monitoring', icon: '📡', color: '#14b8a6' },
+      { num: 12, name: 'Blaze Recipe Vault', desc: 'Winning ad creative recipes library', icon: '🧪', color: '#a855f7' },
+      { num: 13, name: 'Blaze Veo 3.1', desc: 'AI video generation via HeyGen', icon: '🎬', color: '#e11d48' },
+      { num: 14, name: 'Shopify Auditor', desc: 'Automated store audits & reports', icon: '🛒', color: '#84cc16' },
+    ];
+
+    // ─── INIT ──────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      updateClock();
+      setInterval(updateClock, 1000);
+      renderTools();
+      loadSettings();
+      loadAll();
+    });
+
+    // ─── NAVIGATION ────────────────────────────────────────────────────────
+    function navigateTo(page) {
+      const titles = {
+        dashboard: ['Dashboard', 'Command Center Overview'],
+        leads: ['Leads', 'Manage your pipeline'],
+        agents: ['Agents', 'AI agent fleet status'],
+        tasks: ['Tasks', 'Track work across agents'],
+        systeme: ['Systeme.io', 'Contact sync & integration'],
+        tools: ['Midnight Magic', '14 power tools'],
+        settings: ['Settings', 'Configure connections']
+      };
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`page-${page}`).classList.add('active');
+      document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+      const [title, sub] = titles[page] || ['', ''];
+      document.getElementById('pageTitle').textContent = title;
+      document.getElementById('pageSubtitle').textContent = sub;
+      // Close sidebar on mobile
+      if (window.innerWidth <= 1024) {
+        document.getElementById('sidebar').classList.remove('mobile-open');
+      }
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      if (window.innerWidth <= 1024) {
+        sb.classList.toggle('mobile-open');
+      } else {
+        sb.classList.toggle('sidebar-hidden');
+        document.getElementById('mainContent').classList.toggle('main-full');
+      }
+    }
+
+    // ─── CLOCK ─────────────────────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('liveTime').textContent = now.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + ' SAST';
+    }
+
+    // ─── TOAST ─────────────────────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // ─── API FETCH WRAPPER ─────────────────────────────────────────────────
+    async function api(endpoint, options = {}) {
+      if (!API_BASE) throw new Error('API URL not set');
+      const url = `${API_BASE}${endpoint}`;
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json', ...options.headers },
+        ...options
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    // ─── LOAD ALL DATA ────────────────────────────────────────────────────
+    async function loadAll() {
+      try {
+        await Promise.all([loadStats(), loadLeads(), loadAgents(), loadTasks()]);
+        setApiStatus(true);
+        showToast('Data loaded successfully', 'success');
+      } catch (err) {
+        console.error('Load error:', err);
+        setApiStatus(false);
+        showToast('Failed to connect: ' + err.message, 'error');
+      }
+    }
+
+    function setApiStatus(online) {
+      const el = document.getElementById('apiStatus');
+      if (online) {
+        el.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span> ONLINE';
+        el.style.background = 'rgba(34,197,94,0.1)';
+        el.style.color = '#4ade80';
+      } else {
+        el.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span> OFFLINE';
+        el.style.background = 'rgba(239,68,68,0.1)';
+        el.style.color = '#f87171';
+      }
+    }
+
+    // ─── STATS ─────────────────────────────────────────────────────────────
+    async function loadStats() {
+      const data = await api('/api/stats');
+      document.getElementById('stat-leads').textContent = data.contacts || 0;
+      document.getElementById('stat-revenue').textContent = 'R' + (data.revenue || 0).toLocaleString();
+      document.getElementById('stat-agents').textContent = data.agents || 4;
+      document.getElementById('stat-tasks').textContent = data.tasks || 0;
+      // Calculate hot leads
+      const hotCount = allLeads.filter(l => l.tier === 'HOT').length;
+      document.getElementById('stat-hot').textContent = hotCount;
+    }
+
+    // ─── LEADS ─────────────────────────────────────────────────────────────
+    async function loadLeads() {
+      const data = await api('/api/leads');
+      allLeads = data || [];
+      renderLeads(allLeads);
+      renderDashRecentLeads(allLeads.slice(0, 5));
+    }
+
+    function renderLeads(leads) {
+      const tbody = document.getElementById('leadsTableBody');
+      if (!leads.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">No leads found</td></tr>';
+        document.getElementById('leadsCount').textContent = '0 leads';
+        return;
+      }
+      tbody.innerHTML = leads.map(l => {
+        const scoreColor = l.score >= 80 ? '#22c55e' : l.score >= 50 ? '#f59e0b' : l.score >= 25 ? '#3b82f6' : '#8b8b9e';
+        const tierClass = `badge-${l.tier?.toLowerCase() || 'cold'}`;
+        return `<tr>
+          <td style="font-weight:600;">${esc(l.name)}</td>
+          <td style="color:var(--text-secondary);">${esc(l.company || '—')}</td>
+          <td style="font-size:13px;">${esc(l.email)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-weight:600;color:${scoreColor};">${l.score}</span>
+              <div class="score-bar"><div class="score-fill" style="width:${l.score}%;background:${scoreColor};"></div></div>
+            </div>
+          </td>
+          <td><span class="badge ${tierClass}">${l.tier}</span></td>
+          <td style="color:var(--text-secondary);font-size:13px;">${esc(l.source || '—')}</td>
+          <td style="color:var(--text-secondary);font-size:13px;">${esc(l.date || '—')}</td>
+          <td>
+            <button class="btn btn-xs btn-danger" onclick="deleteLead('${l.id}')">✕</button>
+          </td>
+        </tr>`;
+      }).join('');
+      document.getElementById('leadsCount').textContent = `${leads.length} leads`;
+    }
+
+    function renderDashRecentLeads(leads) {
+      const el = document.getElementById('dashRecentLeads');
+      if (!leads.length) { el.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;">No leads yet</div>'; return; }
+      el.innerHTML = leads.map(l => {
+        const tierClass = `badge-${l.tier?.toLowerCase() || 'cold'}`;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
+          <div>
+            <div style="font-size:13px;font-weight:600;">${esc(l.name)}</div>
+            <div style="font-size:11px;color:var(--text-secondary);">${esc(l.company || '')}</div>
+          </div>
+          <span class="badge ${tierClass}" style="font-size:10px;">${l.tier}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function filterLeads(tier) {
+      currentFilter = tier;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.filter-btn[data-filter="${tier}"]`).classList.add('active');
+      const filtered = tier === 'ALL' ? allLeads : allLeads.filter(l => l.tier === tier);
+      renderLeads(filtered);
+    }
+
+    function searchLeads() {
+      const q = document.getElementById('leadSearch').value.toLowerCase();
+      const filtered = allLeads.filter(l =>
+        (l.name || '').toLowerCase().includes(q) ||
+        (l.company || '').toLowerCase().includes(q) ||
+        (l.email || '').toLowerCase().includes(q)
+      );
+      renderLeads(currentFilter === 'ALL' ? filtered : filtered.filter(l => l.tier === currentFilter));
+    }
+
+    async function deleteLead(id) {
+      if (!confirm('Delete this lead?')) return;
+      try {
+        await api(`/api/leads/${id}`, { method: 'DELETE' });
+        showToast('Lead deleted', 'success');
+        loadLeads();
+        loadStats();
+      } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+      }
+    }
+
+    // ─── ADD LEAD ──────────────────────────────────────────────────────────
+    function openAddLeadModal() { document.getElementById('addLeadModal').classList.add('show'); }
+    function openAddTaskModal() { document.getElementById('addTaskModal').classList.add('show'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+    async function submitLead(e) {
+      e.preventDefault();
+      const lead = {
+        name: document.getElementById('leadName').value,
+        company: document.getElementById('leadCompany').value,
+        email: document.getElementById('leadEmail').value,
+        score: parseInt(document.getElementById('leadScore').value) || 50,
+        tier: document.getElementById('leadTier').value,
+        source: document.getElementById('leadSource').value
+      };
+      try {
+        await api('/api/leads', { method: 'POST', body: JSON.stringify(lead) });
+        showToast('Lead added!', 'success');
+        closeModal('addLeadModal');
+        e.target.reset();
+        loadLeads();
+        loadStats();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    // ─── AGENTS ────────────────────────────────────────────────────────────
+    async function loadAgents() {
+      const data = await api('/api/agents');
+      allAgents = data || [];
+      renderAgents(allAgents);
+      renderDashAgents(allAgents);
+    }
+
+    function renderAgents(agents) {
+      const grid = document.getElementById('agentsGrid');
+      grid.innerHTML = agents.map(a => {
+        const statusClass = a.status === 'running' ? 'status-running' : a.status === 'error' ? 'status-error' : 'status-idle';
+        return `<div class="glass agent-card gradient-border">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="font-size:28px;">🤖</div>
+              <div>
+                <div style="font-size:15px;font-weight:700;">${esc(a.name)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">AI Agent</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="agent-status ${statusClass}"></span>
+              <span style="font-size:11px;font-weight:600;text-transform:uppercase;color:${a.status === 'running' ? 'var(--success)' : a.status === 'error' ? 'var(--danger)' : 'var(--text-secondary)'}">${a.status}</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:24px;font-weight:800;">${(a.stats?.found || 0).toLocaleString()}</div>
+              <div style="font-size:11px;color:var(--text-secondary);">Actions</div>
+            </div>
+            <button class="btn btn-sm ${a.status === 'running' ? 'btn-danger' : 'btn-primary'}" onclick="toggleAgent('${a.id}','${a.status}')">
+              ${a.status === 'running' ? '⏸ Pause' : '▶ Start'}
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderDashAgents(agents) {
+      const el = document.getElementById('dashAgents');
+      el.innerHTML = agents.map(a => {
+        const statusClass = a.status === 'running' ? 'status-running' : 'status-idle';
+        return `<div class="glass" style="padding:14px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:20px;">🤖</span>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;">${esc(a.name)}</div>
+          </div>
+          <span class="agent-status ${statusClass}"></span>
+        </div>`;
+      }).join('');
+    }
+
+    async function toggleAgent(id, current) {
+      const newStatus = current === 'running' ? 'idle' : 'running';
+      try {
+        await api(`/api/agents/${id}`, { method: 'PUT', body: JSON.stringify({ status: newStatus }) });
+        showToast(`Agent ${newStatus === 'running' ? 'started' : 'paused'}`, 'success');
+        loadAgents();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    // ─── TASKS ─────────────────────────────────────────────────────────────
+    async function loadTasks() {
+      const data = await api('/api/tasks');
+      allTasks = data || [];
+      renderTasks(allTasks);
+      renderDashTasks(allTasks.filter(t => t.status !== 'done').slice(0, 4));
+    }
+
+    function renderTasks(tasks) {
+      const el = document.getElementById('tasksList');
+      const filtered = currentTaskFilter === 'all' ? tasks : tasks.filter(t => t.status === currentTaskFilter);
+      if (!filtered.length) {
+        el.innerHTML = '<div class="glass" style="padding:40px;text-align:center;color:var(--text-secondary);">No tasks found</div>';
+        return;
+      }
+      el.innerHTML = filtered.map(t => {
+        const priColor = t.priority === 'high' ? 'var(--danger)' : t.priority === 'medium' ? 'var(--warning)' : 'var(--success)';
+        const statusBg = t.status === 'done' ? 'rgba(34,197,94,0.1)' : t.status === 'in-progress' ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.04)';
+        return `<div class="glass" style="padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:${statusBg};">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:200px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${priColor};flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:14px;font-weight:600;${t.status === 'done' ? 'text-decoration:line-through;opacity:0.5;' : ''}">${esc(t.title)}</div>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${esc(t.priority)} priority</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            ${t.status !== 'done' ? `<button class="btn btn-xs btn-ghost" onclick="updateTask('${t.id}','${t.status === 'pending' ? 'in-progress' : 'done'}')">
+              ${t.status === 'pending' ? '▶ Start' : '✓ Done'}
+            </button>` : ''}
+            <button class="btn btn-xs btn-danger" onclick="deleteTask('${t.id}')">✕</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderDashTasks(tasks) {
+      const el = document.getElementById('dashTasks');
+      if (!tasks.length) { el.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;">No pending tasks</div>'; return; }
+      el.innerHTML = tasks.map(t => {
+        const priColor = t.priority === 'high' ? 'var(--danger)' : t.priority === 'medium' ? 'var(--warning)' : 'var(--success)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
+          <div style="width:6px;height:6px;border-radius:50%;background:${priColor};flex-shrink:0;"></div>
+          <div style="font-size:13px;flex:1;">${esc(t.title)}</div>
+          <span style="font-size:10px;color:var(--text-secondary);">${esc(t.status)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function filterTasks(status) {
+      currentTaskFilter = status;
+      document.querySelectorAll('.task-filter').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.task-filter[data-status="${status}"]`).classList.add('active');
+      renderTasks(allTasks);
+    }
+
+    async function submitTask(e) {
+      e.preventDefault();
+      const task = {
+        title: document.getElementById('taskTitle').value,
+        priority: document.getElementById('taskPriority').value,
+        status: 'pending'
+      };
+      try {
+        await api('/api/tasks', { method: 'POST', body: JSON.stringify(task) });
+        showToast('Task created!', 'success');
+        closeModal('addTaskModal');
+        e.target.reset();
+        loadTasks();
+        loadStats();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    async function updateTask(id, status) {
+      try {
+        await api(`/api/tasks/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
+        showToast('Task updated', 'success');
+        loadTasks();
+        loadStats();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteTask(id) {
+      if (!confirm('Delete this task?')) return;
+      try {
+        await api(`/api/tasks/${id}`, { method: 'DELETE' });
+        showToast('Task deleted', 'success');
+        loadTasks();
+        loadStats();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    // ─── SYSTEME.IO ────────────────────────────────────────────────────────
+    async function pullSystemeContacts() {
+      try {
+        showToast('Pulling contacts from Systeme.io...', 'info');
+        const data = await api('/api/systeme/contacts');
+        const contacts = data || [];
+        const el = document.getElementById('systemeContacts');
+        if (!contacts.length) {
+          el.innerHTML = '<div style="color:var(--text-secondary);text-align:center;padding:20px;">No contacts found in Systeme.io</div>';
+          return;
+        }
+        el.innerHTML = `<table class="data-table"><thead><tr><th>Email</th><th>Name</th><th>Tags</th></tr></thead><tbody>
+          ${contacts.map(c => `<tr>
+            <td>${esc(c.email || '—')}</td>
+            <td>${esc(c.name || '—')}</td>
+            <td style="font-size:12px;color:var(--text-secondary);">${(c.tags || []).join(', ') || '—'}</td>
+          </tr>`).join('')}
+        </tbody></table>`;
+        showToast(`Loaded ${contacts.length} contacts`, 'success');
+      } catch (err) {
+        showToast('Pull failed: ' + err.message, 'error');
+      }
+    }
+
+    async function triggerSync() {
+      const btn = document.getElementById('syncBtn');
+      const icon = document.getElementById('syncIcon');
+      btn.disabled = true;
+      icon.classList.add('spin');
+      icon.textContent = '⟳';
+      const log = document.getElementById('syncLog');
+      log.innerHTML = `[${new Date().toLocaleTimeString()}] Starting two-way sync...\n`;
+
+      try {
+        const data = await api('/api/systeme/sync', { method: 'POST' });
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] Pulled: ${data.pulled || 0} contacts from Systeme.io\n`;
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] Imported: ${data.imported || 0} new leads\n`;
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] ✅ Sync complete!\n`;
+        showToast(`Sync done: ${data.imported || 0} imported`, 'success');
+        loadLeads();
+        loadStats();
+      } catch (err) {
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] ❌ Error: ${err.message}\n`;
+        showToast('Sync failed: ' + err.message, 'error');
+      }
+      btn.disabled = false;
+      icon.classList.remove('spin');
+      icon.textContent = '🔗';
+    }
+
+    // ─── TOOLS ─────────────────────────────────────────────────────────────
+    function renderTools() {
+      const grid = document.getElementById('toolsGrid');
+      grid.innerHTML = TOOLS.map(t => `
+        <div class="glass tool-card gradient-border" onclick="showToast('${t.name} — coming soon','info')">
+          <div class="tool-number">${String(t.num).padStart(2,'0')}</div>
+          <div style="font-size:28px;margin-bottom:12px;">${t.icon}</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${t.name}</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${t.desc}</div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:6px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:${t.color};"></div>
+            <span style="font-size:10px;color:var(--text-secondary);font-weight:600;">READY</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ─── SEED DATABASE ─────────────────────────────────────────────────────
+    async function seedDatabase() {
+      try {
+        showToast('Seeding database...', 'info');
+        await api('/api/seed');
+        showToast('Database seeded!', 'success');
+        loadAll();
+      } catch (err) {
+        showToast('Seed failed: ' + err.message, 'error');
+      }
+    }
+
+    // ─── SETTINGS ──────────────────────────────────────────────────────────
+    function loadSettings() {
+      document.getElementById('settingsApiUrl').value = API_BASE;
+      document.getElementById('settingsSystemeKey').value = localStorage.getItem('blaze_systeme_key') || 'gutxuny6z7abcijjhr16yqazqltx43z5gqcl8jpo12mibokr31js1hfc0ed8i8k2';
+      document.getElementById('settingsHeygenKey').value = localStorage.getItem('blaze_heygen_key') || '';
+    }
+
+    function saveSettings() {
+      API_BASE = document.getElementById('settingsApiUrl').value.replace(/\/$/, '');
+      localStorage.setItem('blaze_api_url', API_BASE);
+      localStorage.setItem('blaze_systeme_key', document.getElementById('settingsSystemeKey').value);
+      localStorage.setItem('blaze_heygen_key', document.getElementById('settingsHeygenKey').value);
+      showToast('Settings saved!', 'success');
+      if (API_BASE) loadAll();
+    }
+
+    async function testConnection() {
+      saveSettings();
+      try {
+        await api('/api/stats');
+        showToast('Connection successful!', 'success');
+        setApiStatus(true);
+      } catch (err) {
+        showToast('Connection failed: ' + err.message, 'error');
+        setApiStatus(false);
+      }
+    }
+
+    // ─── UTILITY ───────────────────────────────────────────────────────────
+    function esc(str) {
+      if (!str) return '';
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+  </script>
 </body>
 </html>
