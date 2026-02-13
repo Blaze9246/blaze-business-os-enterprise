@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "name": "blaze-business-os",
+  "builds": [
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "index.html"
+    }
+  ],
+  "env": {
+    "CLERK_PUBLISHABLE_KEY": "pk_test_YWJvdmUtd2hpcHBldC0zNi5jbGVyay5hY2NvdW50cy5kZXYk",
+    "CLERK_SECRET_KEY": "sk_test_k61iDDorYAqa5TSxzaw1xcHQz3PH4blo1XSSp6ztqJ",
+    "SYSTEME_API_KEY": "gutxuny6z7abcijjhr16yqazqltx43z5gqcl8jpo12mibokr31js1hfc0ed8i8k2"
+  }
+}
