@@ -331,7 +331,6 @@ module.exports = async (req, res) => {
         // If it's Essora, use real Shopify API
         if (store.url && store.url.includes('essora')) {
           try {
-            // Token loaded from environment or secure storage
             const accessToken = process.env.SHOPIFY_ESSORA_TOKEN || '';
             const shopDomain = 'essora-skincare.myshopify.com';
             
@@ -343,24 +342,91 @@ module.exports = async (req, res) => {
             const productsRes = await shopifyApi(`https://${shopDomain}`, accessToken, '/products/count.json');
             const productCount = productsRes.count || 0;
             
-            // Fetch orders count (last 60 days)
+            // Fetch orders (last 60 days) with financial data
             const sixtyDaysAgo = new Date();
             sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-            const ordersRes = await shopifyApi(`https://${shopDomain}`, accessToken, `/orders/count.json?created_at_min=${sixtyDaysAgo.toISOString()}&status=any`);
-            const orderCount = ordersRes.count || 0;
+            const ordersRes = await shopifyApi(`https://${shopDomain}`, accessToken, `/orders.json?created_at_min=${sixtyDaysAgo.toISOString()}&status=any&limit=250`);
+            const orders = ordersRes.orders || [];
+            
+            // Calculate metrics
+            const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.total_price || 0), 0);
+            const totalOrders = orders.length;
+            const aov = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+            
+            // Estimate conversion (orders / sessions - simplified)
+            // In real implementation, fetch analytics data
+            const estimatedConversion = totalOrders > 0 ? (totalOrders / 1000 * 100).toFixed(2) : 0; // Placeholder calc
             
             // Fetch shop info
             const shopRes = await shopifyApi(`https://${shopDomain}`, accessToken, '/shop.json');
             const shop = shopRes.shop || {};
             
+            // Get recent orders for display
+            const recentOrders = orders.slice(0, 10).map(o => ({
+              id: o.id,
+              name: o.name,
+              total: o.total_price,
+              date: o.created_at,
+              customer: o.customer?.email || 'Guest'
+            }));
+            
             data.stores[storeIndex].metrics = {
               products: productCount,
-              orders: orderCount,
-              revenue: Math.floor(orderCount * 450), // Estimate R450 avg order
+              orders: totalOrders,
+              revenue: Math.floor(totalRevenue),
+              aov: aov.toFixed(2),
+              conversion: estimatedConversion,
               currency: shop.currency || 'ZAR',
               shopName: shop.name,
-              plan: shop.plan_name
+              plan: shop.plan_name,
+              recentOrders: recentOrders
             };
+            
+            // Generate AI recommendations based on metrics
+            const recommendations = [];
+            
+            if (aov < 500) {
+              recommendations.push({
+                type: 'aov',
+                priority: 'high',
+                title: 'Increase Average Order Value',
+                suggestion: 'Add bundle offers: "Buy 2 Get 1 Free" or "Free shipping over R500" to increase AOV from current R' + aov.toFixed(0)
+              });
+            }
+            
+            if (estimatedConversion < 2) {
+              recommendations.push({
+                type: 'conversion',
+                priority: 'high', 
+                title: 'Boost Conversion Rate',
+                suggestion: 'Add urgency timers, social proof notifications, and streamline checkout. Current rate: ' + estimatedConversion + '%'
+              });
+            }
+            
+            if (totalOrders < 50) {
+              recommendations.push({
+                type: 'traffic',
+                priority: 'medium',
+                title: 'Drive More Traffic',
+                suggestion: 'Run Facebook/Instagram retargeting ads. Only ' + totalOrders + ' orders in 60 days.'
+              });
+            }
+            
+            recommendations.push({
+              type: 'seo',
+              priority: 'medium',
+              title: 'SEO Blog Content',
+              suggestion: 'Create blog posts targeting: "skincare routine South Africa", "natural face products", "glowing skin tips"'
+            });
+            
+            recommendations.push({
+              type: 'email',
+              priority: 'medium',
+              title: 'Email Automation',
+              suggestion: 'Setup abandoned cart emails and post-purchase follow-up sequences'
+            });
+            
+            data.stores[storeIndex].recommendations = recommendations;
             data.stores[storeIndex].lastSync = new Date().toISOString();
             data.stores[storeIndex].status = 'active';
             await saveData(data);
@@ -376,7 +442,9 @@ module.exports = async (req, res) => {
         data.stores[storeIndex].metrics = {
           products: Math.floor(Math.random() * 500) + 50,
           orders: Math.floor(Math.random() * 1000) + 100,
-          revenue: Math.floor(Math.random() * 100000) + 10000
+          revenue: Math.floor(Math.random() * 100000) + 10000,
+          aov: (Math.random() * 300 + 200).toFixed(2),
+          conversion: (Math.random() * 3 + 1).toFixed(2)
         };
         data.stores[storeIndex].lastSync = new Date().toISOString();
         data.stores[storeIndex].status = 'active';
@@ -483,6 +551,65 @@ module.exports = async (req, res) => {
       
       // Return empty for other stores
       return res.json({ success: true, data: [] });
+    }
+    
+    // POST /api/generate-blog
+    if (path === 'generate-blog' && req.method === 'POST') {
+      const { storeId, keyword, suggestion } = req.body;
+      
+      // Generate SEO-optimized blog post (simulated - in production, use OpenAI)
+      const blogPost = {
+        title: `The Ultimate Guide to ${keyword.charAt(0).toUpperCase() + keyword.slice(1)} in South Africa`,
+        slug: keyword.toLowerCase().replace(/\s+/g, '-'),
+        excerpt: `Discover the best ${keyword} tips and tricks specifically for South African skincare routines.`,
+        content: `
+# The Ultimate Guide to ${keyword.charAt(0).toUpperCase() + keyword.slice(1)} in South Africa
+
+## Introduction
+
+When it comes to ${keyword}, South Africans have unique needs due to our climate and lifestyle. In this comprehensive guide, we'll explore everything you need to know.
+
+## Why ${keyword} Matters
+
+${keyword} is essential for maintaining healthy, glowing skin. Here's why:
+
+- Protects against environmental damage
+- Keeps skin hydrated in our dry climate
+- Prevents premature aging
+
+## Best Practices for ${keyword}
+
+### 1. Choose Quality Products
+Look for products with natural ingredients that suit your skin type.
+
+### 2. Be Consistent
+Consistency is key when it comes to ${keyword}. Make it part of your daily routine.
+
+### 3. Protect Your Skin
+Always follow up with SPF protection during the day.
+
+## Recommended Products
+
+Based on our expertise, here are our top recommendations for ${keyword}:
+
+- Essora Hydrating Cleanser
+- Essora Vitamin C Serum
+- Essora Daily Moisturizer with SPF
+
+## Conclusion
+
+${keyword} doesn't have to be complicated. With the right products and consistency, you can achieve beautiful, healthy skin.
+
+---
+
+*Ready to start your ${keyword} journey? Shop our collection at Essora Skincare.*
+        `.trim(),
+        keywords: [keyword, 'skincare', 'south africa', 'beauty tips'],
+        readTime: '5 min read',
+        generatedAt: new Date().toISOString()
+      };
+      
+      return res.json({ success: true, data: blogPost });
     }
     
     return res.status(404).json({ success: false, error: 'Not found' });
