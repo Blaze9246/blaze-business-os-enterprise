@@ -553,6 +553,23 @@ module.exports = async (req, res) => {
       return res.json({ success: true, data: [] });
     }
     
+    // PUT /api/stores/:id/checklist
+    if (path.startsWith('stores/') && path.endsWith('/checklist') && req.method === 'PUT') {
+      const id = path.replace('stores/', '').replace('/checklist', '');
+      const { checklist, score } = req.body;
+      const data = await loadData();
+      const storeIndex = data.stores.findIndex(s => s.id === id);
+      
+      if (storeIndex >= 0) {
+        data.stores[storeIndex].conversionChecklist = checklist;
+        data.stores[storeIndex].conversionScore = score;
+        data.stores[storeIndex].lastChecklistUpdate = new Date().toISOString();
+        await saveData(data);
+      }
+      
+      return res.json({ success: true });
+    }
+    
     // POST /api/stores/:id/audit
     if (path.startsWith('stores/') && path.endsWith('/audit') && req.method === 'POST') {
       const id = path.replace('stores/', '').replace('/audit', '');
