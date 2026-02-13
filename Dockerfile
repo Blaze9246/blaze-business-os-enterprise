@@ -1,13 +1,13 @@
-FROM node:20-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
-COPY server-static.js ./
-COPY frontend/dist ./frontend/dist
+COPY . .
 
-EXPOSE 3000
+ENV PORT=8080
+EXPOSE 8080
 
-CMD ["node", "server-static.js"]
+CMD ["node", "api-server.js"]
