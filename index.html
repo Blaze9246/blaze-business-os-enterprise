@@ -695,7 +695,7 @@
         <div style="font-size:18px;font-weight:700;margin-bottom:20px;">Configuration</div>
         <div class="form-group">
           <label class="form-label">API Base URL</label>
-          <input type="text" class="form-input" id="settingsApiUrl" value="" placeholder="https://your-api.railway.app">
+          <input type="text" class="form-input" id="settingsApiUrl" value="" placeholder="Leave empty to use current domain (same as frontend)">
         </div>
         <div class="form-group">
           <label class="form-label">Systeme.io API Key</label>
@@ -818,7 +818,7 @@
   <!-- ════════════════════════════════════════════════════════════════════════ -->
   <script>
     // ─── CONFIG ────────────────────────────────────────────────────────────
-    let API_BASE = localStorage.getItem('blaze_api_url') || 'http://localhost:3000';
+    let API_BASE = localStorage.getItem('blaze_api_url') || '';
     let allLeads = [];
     let allTasks = [];
     let allAgents = [];
@@ -904,8 +904,8 @@
 
     // ─── API FETCH WRAPPER ─────────────────────────────────────────────────
     async function api(endpoint, options = {}) {
-      if (!API_BASE) throw new Error('API URL not set');
-      const url = `${API_BASE}${endpoint}`;
+      const base = API_BASE || ''; // Empty = use relative URLs (same domain)
+      const url = base ? `${base}${endpoint}` : endpoint;
       const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json', ...options.headers },
         ...options
