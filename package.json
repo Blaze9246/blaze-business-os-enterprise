@@ -1,13 +1,22 @@
 {
   "name": "blaze-business-os-enterprise",
   "version": "1.0.0",
+  "description": "Blaze Business OS Enterprise — Unified Command Center",
+  "main": "api-server.js",
   "scripts": {
-    "start": "node server-static.js"
+    "start": "node api-server.js",
+    "dev": "nodemon api-server.js"
   },
   "dependencies": {
-    "axios": "^1.13.5",
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "firebase-admin": "^13.6.1",
-    "firebase-functions": "^7.0.5"
+    "firebase-admin": "^12.0.0",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
