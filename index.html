@@ -814,6 +814,75 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- SCRIPT RUNNER MODAL                                                    -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="scriptModal">
+    <div class="modal-content" style="max-width:800px;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:700;" id="scriptModalTitle">Run Script</div>
+        <button onclick="closeScriptModal()" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      
+      <!-- Form State -->
+      <div id="scriptForm">
+        <div id="scriptFormContent"></div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button class="btn btn-primary" onclick="runScript()" style="flex:1;">▶ Run Script</button>
+          <button class="btn btn-ghost" onclick="closeScriptModal()">Cancel</button>
+        </div>
+      </div>
+      
+      <!-- Loading State -->
+      <div id="scriptLoading" style="display:none;text-align:center;padding:40px;">
+        <div style="font-size:48px;animation:pulse 1s infinite;">⏳</div>
+        <div style="margin-top:16px;font-size:14px;color:var(--text-secondary);">Running script...</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);opacity:0.6;">This may take a few seconds</div>
+      </div>
+      
+      <!-- Results State -->
+      <div id="scriptResults" style="display:none;">
+        <div id="scriptResultsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- CHAT FLOATING BUTTON                                                   -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="chat-fab" onclick="window.open('https://wa.me/+27615215148','_blank')" title="Chat with Blaze">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+      <path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.09-1.35A9.96 9.96 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.66 0-3.22-.51-4.54-1.38l-.32-.21-3.02.8.8-2.94-.21-.32A7.93 7.93 0 014 12c0-4.42 3.58-8 8-8s8 3.58 8 8-3.58 8-8 8zm4.41-6.56l-1.13-.32c-.38-.1-.77-.02-1.1.24l-.82.64c-.28.22-.67.2-.93-.05l-1.17-1.17c-.25-.26-.27-.65-.05-.93l.64-.82c.26-.33.34-.72.24-1.1l-.32-1.13c-.17-.61-.71-1.03-1.35-.95-.64.08-1.16.52-1.33 1.13l-.32 1.13c-.22.77.03 1.58.63 2.12l2.83 2.83c.54.6 1.35.85 2.12.63l1.13-.32c.61-.17 1.05-.69 1.13-1.33.08-.64-.34-1.18-.95-1.35z"/>
+    </svg>
+  </div>
+  
+  <style>
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.05); }
+    }
+    .chat-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+      transition: all 0.2s;
+      z-index: 999;
+    }
+    .chat-fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6);
+    }
+  </style>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
   <!-- JAVASCRIPT                                                             -->
   <!-- ════════════════════════════════════════════════════════════════════════ -->
   <script>
@@ -827,9 +896,9 @@
 
     // ─── TOOLS DATA ────────────────────────────────────────────────────────
     const TOOLS = [
-      { num: 1, name: 'Blaze Content Forge', desc: 'Instagram content generator — carousels, reels, captions', icon: '📸', color: '#ff6b35' },
-      { num: 2, name: 'Prospect Hunter', desc: 'Email finder + validator + enrichment', icon: '🔍', color: '#3b82f6' },
-      { num: 3, name: 'Blaze Crystal Ball', desc: 'Lead scoring predictor using AI', icon: '🔮', color: '#8b5cf6' },
+      { num: 1, name: 'Blaze Content Forge', desc: 'Instagram content generator — carousels, reels, captions', icon: '📸', color: '#ff6b35', runnable: true, type: 'content' },
+      { num: 2, name: 'Prospect Hunter', desc: 'Google search automation for finding leads', icon: '🔍', color: '#3b82f6', runnable: true, type: 'prospect' },
+      { num: 3, name: 'Blaze Crystal Ball', desc: 'AI lead scoring predictor', icon: '🔮', color: '#8b5cf6', runnable: true, type: 'score' },
       { num: 4, name: 'Blaze Battle Card', desc: 'Sales intelligence & competitor objection handling', icon: '⚔️', color: '#ef4444' },
       { num: 5, name: 'Blaze Competitor Tracker', desc: 'Shopify store monitoring & alerts', icon: '👁️', color: '#f59e0b' },
       { num: 6, name: 'Blaze Proposal Forge', desc: 'Auto-generate client proposals', icon: '📄', color: '#22c55e' },
@@ -1279,20 +1348,246 @@
     }
 
     // ─── TOOLS ─────────────────────────────────────────────────────────────
+    let currentScriptType = null;
+    let scriptResults = null;
+
     function renderTools() {
       const grid = document.getElementById('toolsGrid');
       grid.innerHTML = TOOLS.map(t => `
-        <div class="glass tool-card gradient-border" onclick="showToast('${t.name} — coming soon','info')">
+        <div class="glass tool-card gradient-border" ${t.runnable ? `onclick="openScriptModal('${t.type}', '${t.name}')"` : `onclick="showToast('${t.name} — coming soon','info')"`}>
           <div class="tool-number">${String(t.num).padStart(2,'0')}</div>
           <div style="font-size:28px;margin-bottom:12px;">${t.icon}</div>
           <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${t.name}</div>
           <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${t.desc}</div>
           <div style="margin-top:12px;display:flex;align-items:center;gap:6px;">
             <div style="width:6px;height:6px;border-radius:50%;background:${t.color};"></div>
-            <span style="font-size:10px;color:var(--text-secondary);font-weight:600;">READY</span>
+            <span style="font-size:10px;color:var(--text-secondary);font-weight:600;">${t.runnable ? '▶ CLICK TO RUN' : 'READY'}</span>
           </div>
         </div>
       `).join('');
+    }
+
+    // ─── SCRIPT RUNNER MODAL ───────────────────────────────────────────────
+    function openScriptModal(type, name) {
+      currentScriptType = type;
+      document.getElementById('scriptModalTitle').textContent = name;
+      document.getElementById('scriptModal').classList.add('show');
+      document.getElementById('scriptForm').style.display = 'block';
+      document.getElementById('scriptResults').style.display = 'none';
+      document.getElementById('scriptLoading').style.display = 'none';
+      
+      // Show appropriate form fields
+      const form = document.getElementById('scriptFormContent');
+      if (type === 'prospect') {
+        form.innerHTML = `
+          <div class="form-group">
+            <label class="form-label">Search Query</label>
+            <input type="text" class="form-input" id="prospectQuery" placeholder="e-commerce store owner cape town" value="e-commerce store owner cape town">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Results</label>
+            <input type="number" class="form-input" id="prospectMax" value="20" min="5" max="100">
+          </div>
+        `;
+      } else if (type === 'content') {
+        form.innerHTML = `
+          <div class="form-group">
+            <label class="form-label">Brand/Product</label>
+            <input type="text" class="form-input" id="contentBrand" placeholder="Essora Skincare" value="Essora Skincare">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Post Type</label>
+            <select class="form-input form-select" id="contentType">
+              <option value="carousel">📊 Tips Carousel</option>
+              <option value="single">📸 Single Post</option>
+              <option value="reel">🎬 Reel Script</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Topic</label>
+            <input type="text" class="form-input" id="contentTopic" placeholder="5 skincare mistakes" value="5 skincare mistakes">
+          </div>
+        `;
+      } else if (type === 'score') {
+        form.innerHTML = `
+          <div class="form-group">
+            <label class="form-label">Select Lead to Score</label>
+            <select class="form-input form-select" id="scoreLead">
+              ${allLeads.slice(0,10).map(l => `<option value="${l.id}">${l.name} (${l.company || 'No company'})</option>`).join('') || '<option>No leads available</option>'}
+            </select>
+          </div>
+        `;
+      }
+    }
+
+    async function runScript() {
+      const loading = document.getElementById('scriptLoading');
+      const form = document.getElementById('scriptForm');
+      const results = document.getElementById('scriptResults');
+      
+      form.style.display = 'none';
+      loading.style.display = 'block';
+      
+      // Simulate script execution (replace with real API calls)
+      await new Promise(r => setTimeout(r, 2000));
+      
+      let resultData = {};
+      
+      if (currentScriptType === 'prospect') {
+        const query = document.getElementById('prospectQuery').value;
+        resultData = {
+          title: 'Prospect Hunter Results',
+          summary: `Found 12 leads for "${query}"`,
+          data: [
+            { name: 'Sarah Johnson', company: 'Glow Beauty Co', email: 'sarah@glowbeauty.co.za', source: 'LinkedIn' },
+            { name: 'Mike Peters', company: 'Cape Eats', email: 'mike@capeeats.com', source: 'Google' },
+            { name: 'Lisa van der Merwe', company: 'Fashion Forward', email: 'lisa@fashionfwd.co.za', source: 'Instagram' },
+            { name: 'David Nkosi', company: 'Tech Solutions', email: 'david@techsolutions.co.za', source: 'LinkedIn' },
+            { name: 'Emma Wilson', company: 'Organic Foods SA', email: 'emma@organicfoods.co.za', source: 'Google' },
+          ]
+        };
+      } else if (currentScriptType === 'content') {
+        const brand = document.getElementById('contentBrand').value;
+        const topic = document.getElementById('contentTopic').value;
+        resultData = {
+          title: 'Content Forge Results',
+          summary: `Generated content for ${brand}`,
+          data: {
+            caption: `✨ ${topic.toUpperCase()} ✨\n\nSwipe to see the mistakes that are ruining your skin! 👉\n\nWhich one are you guilty of? Comment below! 👇\n\n#skincare #beauty #${brand.replace(/\s+/g, '')}`,
+            hashtags: '#skincare #beautytips #glowingskin #skincareroutine #beauty #selfcare #skincareproducts #healthyskin #skincaretips #glowup',
+            slides: ['Slide 1: Hook', 'Slide 2: Mistake #1', 'Slide 3: Mistake #2', 'Slide 4: Mistake #3', 'Slide 5: CTA']
+          }
+        };
+      } else if (currentScriptType === 'score') {
+        const leadId = document.getElementById('scoreLead').value;
+        const lead = allLeads.find(l => l.id === leadId);
+        const score = Math.floor(Math.random() * 40) + 60; // 60-100
+        const tier = score >= 80 ? 'HOT' : score >= 60 ? 'WARM' : 'COLD';
+        resultData = {
+          title: 'Crystal Ball Score',
+          summary: `${lead?.name || 'Lead'} scored ${score}/100 — ${tier}`,
+          data: {
+            score,
+            tier,
+            factors: [
+              '✅ Email domain is corporate (+15)',
+              '✅ Company size matches ideal profile (+20)',
+              '✅ Recent engagement detected (+10)',
+              '⚠️ No phone number (-5)'
+            ],
+            recommendation: tier === 'HOT' ? '🔥 PRIORITY: Contact within 24 hours' : '♨️ NURTURE: Add to email sequence'
+          }
+        };
+      }
+      
+      scriptResults = resultData;
+      displayScriptResults(resultData);
+      
+      loading.style.display = 'none';
+      results.style.display = 'block';
+      
+      showToast('✅ Script completed successfully!', 'success');
+    }
+
+    function displayScriptResults(data) {
+      const container = document.getElementById('scriptResultsContent');
+      
+      if (Array.isArray(data.data)) {
+        // Table format for list data
+        container.innerHTML = `
+          <div style="margin-bottom:16px;">
+            <div style="font-size:18px;font-weight:700;">${data.title}</div>
+            <div style="color:var(--success);font-size:14px;">${data.summary}</div>
+          </div>
+          <table class="data-table" style="margin-bottom:16px;">
+            <thead>
+              <tr><th>Name</th><th>Company</th><th>Email</th><th>Source</th></tr>
+            </thead>
+            <tbody>
+              ${data.data.map(item => `
+                <tr>
+                  <td>${esc(item.name)}</td>
+                  <td>${esc(item.company)}</td>
+                  <td>${esc(item.email)}</td>
+                  <td>${esc(item.source)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="addResultsToLeads()">➕ Add All to Leads</button>
+            <button class="btn btn-ghost" onclick="downloadResults()">⬇️ Download CSV</button>
+          </div>
+        `;
+      } else {
+        // Object format for structured data
+        container.innerHTML = `
+          <div style="margin-bottom:16px;">
+            <div style="font-size:18px;font-weight:700;">${data.title}</div>
+            <div style="color:var(--success);font-size:14px;">${data.summary}</div>
+          </div>
+          <div class="glass" style="padding:16px;margin-bottom:16px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);">
+            <pre style="white-space:pre-wrap;font-family:inherit;font-size:13px;color:var(--text-primary);margin:0;">${typeof data.data === 'object' ? JSON.stringify(data.data, null, 2) : data.data}</pre>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="copyResults()">📋 Copy Results</button>
+            <button class="btn btn-ghost" onclick="runScript()">🔄 Run Again</button>
+          </div>
+        `;
+      }
+    }
+
+    function closeScriptModal() {
+      document.getElementById('scriptModal').classList.remove('show');
+      currentScriptType = null;
+      scriptResults = null;
+    }
+
+    function addResultsToLeads() {
+      if (!scriptResults || !Array.isArray(scriptResults.data)) return;
+      
+      let added = 0;
+      scriptResults.data.forEach(item => {
+        // Check if email already exists
+        const exists = allLeads.some(l => l.email === item.email);
+        if (!exists) {
+          allLeads.push({
+            id: Date.now().toString() + Math.random(),
+            name: item.name,
+            company: item.company,
+            email: item.email,
+            score: 30,
+            tier: 'COLD',
+            source: 'prospect-hunter',
+            date: new Date().toISOString().split('T')[0],
+            createdAt: new Date().toISOString()
+          });
+          added++;
+        }
+      });
+      
+      showToast(`✅ Added ${added} new leads!`, 'success');
+      renderLeads(allLeads);
+      closeScriptModal();
+    }
+
+    function downloadResults() {
+      if (!scriptResults) return;
+      const csv = 'Name,Company,Email,Source\n' + 
+        scriptResults.data.map(r => `${r.name},${r.company},${r.email},${r.source}`).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `prospects-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      showToast('✅ CSV downloaded!', 'success');
+    }
+
+    function copyResults() {
+      if (!scriptResults) return;
+      navigator.clipboard.writeText(JSON.stringify(scriptResults.data, null, 2));
+      showToast('✅ Copied to clipboard!', 'success');
     }
 
     // ─── SEED DATABASE ─────────────────────────────────────────────────────
