@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "name": "blaze-business-os",
   "builds": [
     {
       "src": "backend/server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
