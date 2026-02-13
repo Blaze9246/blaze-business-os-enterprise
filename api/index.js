@@ -112,6 +112,13 @@ module.exports = async (req, res) => {
       return res.json({ success: true, data: agents });
     }
     
+    // PUT /api/agents/:id
+    if (path.startsWith('agents/') && req.method === 'PUT') {
+      const id = path.replace('agents/', '');
+      await db.collection('agents').doc(id).update(req.body);
+      return res.json({ success: true });
+    }
+    
     // GET /api/tasks
     if (path === 'tasks' && req.method === 'GET') {
       const snapshot = await db.collection('tasks').orderBy('createdAt', 'desc').limit(50).get();
@@ -128,6 +135,20 @@ module.exports = async (req, res) => {
       };
       const docRef = await db.collection('tasks').add(task);
       return res.json({ success: true, data: { id: docRef.id, ...task } });
+    }
+    
+    // PUT /api/tasks/:id
+    if (path.startsWith('tasks/') && req.method === 'PUT') {
+      const id = path.replace('tasks/', '');
+      await db.collection('tasks').doc(id).update(req.body);
+      return res.json({ success: true });
+    }
+    
+    // DELETE /api/tasks/:id
+    if (path.startsWith('tasks/') && req.method === 'DELETE') {
+      const id = path.replace('tasks/', '');
+      await db.collection('tasks').doc(id).delete();
+      return res.json({ success: true });
     }
     
     // GET /api/seed
@@ -158,8 +179,21 @@ module.exports = async (req, res) => {
         batch.set(ref, { ...l, date: new Date().toISOString().split('T')[0], createdAt: admin.firestore.FieldValue.serverTimestamp() });
       });
       
+      // Seed tasks
+      const tasks = [
+        { title: 'Follow up with Lerato Molefe', priority: 'high', status: 'pending' },
+        { title: 'Generate Instagram carousel for Glow Digital', priority: 'medium', status: 'in-progress' },
+        { title: 'Audit Botha Wines Shopify store', priority: 'low', status: 'pending' },
+        { title: 'Send onboarding docs to Ayanda', priority: 'high', status: 'done' },
+        { title: 'Scrape 50 new Cape Town e-commerce leads', priority: 'medium', status: 'pending' },
+      ];
+      tasks.forEach(t => {
+        const ref = db.collection('tasks').doc();
+        batch.set(ref, { ...t, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+      });
+      
       await batch.commit();
-      return res.json({ success: true, message: 'Database seeded' });
+      return res.json({ success: true, message: 'Database seeded with agents, leads, and tasks' });
     }
     
     // GET /api/systeme/contacts - Pull from Systeme.io
