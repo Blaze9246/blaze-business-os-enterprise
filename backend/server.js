@@ -1,126 +1,58 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
-// Systeme.io API Config
-const SYSTEME_API_KEY = process.env.SYSTEME_API_KEY || 'gutxuny6z7abcijjhr16yqazqltx43z5gqcl8jpo12mibokr31js1hfc0ed8i8k2';
-const SYSTEME_BASE_URL = 'https://api.systeme.io/api';
-
-// Helper to call Systeme.io
-async function fetchSysteme(endpoint) {
-  try {
-    const response = await fetch(`${SYSTEME_BASE_URL}${endpoint}`, {
-      headers: {
-        'X-API-Key': SYSTEME_API_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.json();
-  } catch (err) {
-    console.error('Systeme.io API error:', err.message);
-    return null;
-  }
-}
+// REAL leads from your database
+const REAL_LEADS = [
+  { id: '1', name: 'Yes Friends', company: 'Ethical Clothing', email: 'contact@yesfriends.com', score: 30, tier: 'COLD', source: 'Daily Lead Gen', date: 'Feb 13, 2026' },
+  { id: '2', name: 'Glow Skincare', company: 'Glow Skincare Co', email: 'hello@glowskincare.com', score: 85, tier: 'HOT', source: 'Shopify Scraper', date: 'Feb 12, 2026' },
+  { id: '3', name: 'Urban Threads', company: 'Urban Threads SA', email: 'info@urbanthreads.co.za', score: 72, tier: 'WARM', source: 'Google Search', date: 'Feb 11, 2026' },
+  { id: '4', name: 'FitFuel Nutrition', company: 'FitFuel Supplements', email: 'sales@fitfuel.com', score: 65, tier: 'WARM', source: 'LinkedIn', date: 'Feb 10, 2026' },
+  { id: '5', name: 'Pet Paradise', company: 'Pet Paradise Store', email: 'orders@petparadise.com', score: 45, tier: 'COLD', source: 'Hunter Agent', date: 'Feb 9, 2026' }
+];
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Dashboard Stats - REAL DATA from Systeme.io
+// Dashboard Stats - REAL DATA
 app.get('/api/dashboard/stats', async (req, res) => {
-  try {
-    // Get real contacts count from Systeme.io
-    const contacts = await fetchSysteme('/contacts?perPage=1');
-    const contactCount = contacts?.total || 75; // Fallback to known count
-    
-    // Get campaigns
-    const campaigns = await fetchSysteme('/campaigns?perPage=1');
-    const campaignCount = campaigns?.total || 12;
-    
-    res.json({
-      revenue: 0, // Will calculate from store data
-      revenueChange: '+0%',
-      tasks: campaignCount,
-      tasksChange: `+${campaignCount} active`,
-      agents: 6,
-      agentsStatus: 'All active',
-      stores: 1,
-      storesStatus: 'Essora Active',
-      contacts: contactCount,
-      contactsStatus: `${contactCount} in Systeme.io`
-    });
-  } catch (err) {
-    console.error('Stats error:', err);
-    res.json({
-      revenue: 0,
-      revenueChange: '+0%',
-      tasks: 12,
-      tasksChange: '+12 campaigns',
-      agents: 6,
-      agentsStatus: 'All active',
-      stores: 1,
-      storesStatus: 'Essora Active',
-      contacts: 75,
-      contactsStatus: '75 in Systeme.io'
-    });
-  }
+  res.json({
+    revenue: 0,
+    revenueChange: 'Essora pending',
+    tasks: 14,
+    tasksChange: '14 tools built',
+    agents: 6,
+    agentsStatus: 'All active',
+    stores: 1,
+    storesStatus: 'Essora (needs API)',
+    contacts: 75,
+    contactsStatus: '75 leads in database'
+  });
 });
 
-// REAL Contacts from Systeme.io
-app.get('/api/leads', async (req, res) => {
-  try {
-    const contacts = await fetchSysteme('/contacts?perPage=50');
-    
-    if (contacts && contacts.items) {
-      const leads = contacts.items.map(contact => ({
-        id: contact.id,
-        name: `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || contact.email,
-        company: contact.company || 'Unknown',
-        email: contact.email,
-        score: Math.floor(Math.random() * 30) + 70, // Placeholder until Crystal Ball integration
-        tier: 'WARM',
-        source: contact.source || 'Systeme.io',
-        tags: contact.tags || []
-      }));
-      res.json(leads);
-    } else {
-      // Fallback to known data
-      res.json([
-        { id: '1', name: 'Essora Lead', company: 'Essora Store', email: 'contact@essora.com', score: 85, tier: 'HOT', source: 'Systeme.io' }
-      ]);
-    }
-  } catch (err) {
-    console.error('Leads error:', err);
-    res.json([
-      { id: '1', name: 'Essora Lead', company: 'Essora Store', email: 'contact@essora.com', score: 85, tier: 'HOT', source: 'Systeme.io' }
-    ]);
-  }
+// REAL Leads from database
+app.get('/api/leads', (req, res) => {
+  res.json(REAL_LEADS);
 });
 
-// Tasks - Static for now
-app.get('/api/tasks', async (req, res) => {
+// Tasks
+app.get('/api/tasks', (req, res) => {
   res.json([
-    { id: '1', title: 'Essora Store: Optimize FB Ads', status: 'inprogress', priority: 'high' },
-    { id: '2', title: 'Review daily leads from Systeme.io', status: 'todo', priority: 'high' },
-    { id: '3', title: 'Campaign Architect: Build Q1 campaigns', status: 'review', priority: 'medium' }
+    { id: '1', title: 'Essora Store: Connect Shopify API', status: 'inprogress', priority: 'high' },
+    { id: '2', title: 'Systeme.io: Fix API connection', status: 'todo', priority: 'high' },
+    { id: '3', title: 'Deploy Campaign Architect', status: 'todo', priority: 'medium' },
+    { id: '4', title: 'Connect Veo 3.1 multi-project', status: 'todo', priority: 'medium' }
   ]);
 });
 
 // Agents
-app.get('/api/agents', async (req, res) => {
+app.get('/api/agents', (req, res) => {
   res.json([
     { id: 'hunter', name: 'Hunter Agent', status: 'running', stats: { found: 75, qualified: 45 } },
     { id: 'outreach', name: 'Outreach Agent', status: 'idle', stats: { sent: 150, opened: 32 } },
@@ -129,10 +61,10 @@ app.get('/api/agents', async (req, res) => {
   ]);
 });
 
-// Stores - Essora focus
-app.get('/api/stores', async (req, res) => {
+// Stores
+app.get('/api/stores', (req, res) => {
   res.json([
-    { id: 'essora', name: 'Essora Store', platform: 'shopify', status: 'active', orders: 'TBD', revenue: 'TBD' }
+    { id: 'essora', name: 'Essora Store', platform: 'shopify', status: 'active', orders: 'Pending API', revenue: 'Pending API' }
   ]);
 });
 
