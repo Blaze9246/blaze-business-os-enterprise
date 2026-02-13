@@ -710,7 +710,7 @@
       </div>
       
       <!-- Store Cards -->
-      <div id="storesList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;">
+      <div id="storesList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;">
         <div class="glass" style="padding:40px;text-align:center;color:var(--text-secondary);">
           <div style="font-size:48px;margin-bottom:16px;">🛒</div>
           <div style="font-size:14px;font-weight:600;margin-bottom:8px;">No stores connected yet</div>
@@ -724,6 +724,42 @@
         <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Store Sync Log</div>
         <div id="storeLog" style="font-family:monospace;font-size:12px;color:var(--text-secondary);max-height:200px;overflow-y:auto;">
           Waiting for store sync...
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: STORE PRODUCTS                                                  -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="storeProductsModal">
+      <div class="modal-content" style="max-width:900px;max-height:85vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div>
+            <div style="font-size:16px;font-weight:700;" id="storeProductsTitle">Store Products</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Click product to view/edit</div>
+          </div>
+          <button onclick="closeModal('storeProductsModal')" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+        </div>
+        <div id="storeProductsContent">
+          <div style="text-align:center;padding:40px;color:var(--text-secondary);">Loading products...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: STORE ORDERS                                                    -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="storeOrdersModal">
+      <div class="modal-content" style="max-width:900px;max-height:85vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div>
+            <div style="font-size:16px;font-weight:700;" id="storeOrdersTitle">Store Orders</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Recent orders from store</div>
+          </div>
+          <button onclick="closeModal('storeOrdersModal')" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+        </div>
+        <div id="storeOrdersContent">
+          <div style="text-align:center;padding:40px;color:var(--text-secondary);">Loading orders...</div>
         </div>
       </div>
     </div>
@@ -1764,7 +1800,9 @@
           
           <div style="display:flex;gap:8px;">
             <button class="btn btn-sm btn-ghost" onclick="syncStore('${s.id}')">🔄 Sync</button>
-            <button class="btn btn-sm btn-primary" onclick="runAudit('${s.id}')">📊 Audit</button>
+            <button class="btn btn-sm btn-primary" onclick="viewStoreProducts('${s.id}')">📦 Products</button>
+            <button class="btn btn-sm btn-primary" onclick="viewStoreOrders('${s.id}')">📋 Orders</button>
+            <button class="btn btn-sm btn-ghost" onclick="runAudit('${s.id}')">📊 Audit</button>
             <button class="btn btn-sm btn-danger" style="margin-left:auto;" onclick="deleteStore('${s.id}')">✕</button>
           </div>
           
@@ -1832,6 +1870,106 @@
         log.innerHTML += `[${new Date().toLocaleTimeString()}] ✅ Audit complete - Score: 78/100\n`;
         showToast('Audit complete! Score: 78/100', 'success');
       }, 1500);
+    }
+
+    async function viewStoreProducts(id) {
+      const store = allStores.find(s => s.id === id);
+      document.getElementById('storeProductsTitle').textContent = `${store?.name} - Products`;
+      document.getElementById('storeProductsModal').classList.add('show');
+      document.getElementById('storeProductsContent').innerHTML = '<div style="text-align:center;padding:40px;">⏳ Loading products...</div>';
+      
+      try {
+        const products = await api(`/api/stores/${id}/products`);
+        
+        if (!products || products.length === 0) {
+          document.getElementById('storeProductsContent').innerHTML = `
+            <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+              <div style="font-size:48px;margin-bottom:16px;">📦</div>
+              <div>No products found</div>
+            </div>
+          `;
+          return;
+        }
+        
+        document.getElementById('storeProductsContent').innerHTML = `
+          <div style="margin-bottom:16px;font-size:14px;color:var(--text-secondary);">
+            ${products.length} products found
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+            ${products.map(p => `
+              <div class="glass" style="padding:16px;cursor:pointer;transition:all 0.2s;" 
+                   onmouseover="this.style.borderColor='var(--accent)'" 
+                   onmouseout="this.style.borderColor=''"
+                   onclick="window.open('${store?.url}/admin/products/${p.id}', '_blank')">
+                <div style="width:100%;height:120px;background:rgba(255,255,255,0.05);border-radius:8px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:40px;">
+                  ${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : '📷'}
+                </div>
+                <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.title)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${p.variants?.length || 1} variant(s)</div>
+                <div style="font-size:12px;color:var(--success);margin-top:4px;">${p.status === 'active' ? '✓ Active' : '⚠ Draft'}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById('storeProductsContent').innerHTML = `
+          <div style="text-align:center;padding:40px;color:var(--danger);">
+            Failed to load products: ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    async function viewStoreOrders(id) {
+      const store = allStores.find(s => s.id === id);
+      document.getElementById('storeOrdersTitle').textContent = `${store?.name} - Orders`;
+      document.getElementById('storeOrdersModal').classList.add('show');
+      document.getElementById('storeOrdersContent').innerHTML = '<div style="text-align:center;padding:40px;">⏳ Loading orders...</div>';
+      
+      try {
+        const orders = await api(`/api/stores/${id}/orders`);
+        
+        if (!orders || orders.length === 0) {
+          document.getElementById('storeOrdersContent').innerHTML = `
+            <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+              <div style="font-size:48px;margin-bottom:16px;">📋</div>
+              <div>No orders found</div>
+            </div>
+          `;
+          return;
+        }
+        
+        document.getElementById('storeOrdersContent').innerHTML = `
+          <div style="margin-bottom:16px;font-size:14px;color:var(--text-secondary);">
+            ${orders.length} recent orders
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            ${orders.map(o => `
+              <div class="glass" style="padding:16px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-size:14px;font-weight:600;">Order #${o.order_number || o.name}</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${o.customer?.first_name || ''} ${o.customer?.last_name || ''} (${o.customer?.email || 'No email'})</div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${new Date(o.created_at).toLocaleDateString()} • ${o.line_items?.length || 0} item(s)</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:16px;font-weight:700;color:var(--success);">${o.currency || 'ZAR'} ${o.total_price || '0.00'}</div>
+                  <div style="font-size:11px;margin-top:4px;">
+                    <span class="badge badge-${o.financial_status === 'paid' ? 'hot' : o.financial_status === 'pending' ? 'warm' : 'cold'}" style="font-size:10px;">
+                      ${o.financial_status || 'unknown'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById('storeOrdersContent').innerHTML = `
+          <div style="text-align:center;padding:40px;color:var(--danger);">
+            Failed to load orders: ${err.message}
+          </div>
+        `;
+      }
     }
 
     async function deleteStore(id) {

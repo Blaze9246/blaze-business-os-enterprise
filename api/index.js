@@ -369,6 +369,105 @@ module.exports = async (req, res) => {
       return res.json({ success: true, data: data.stores[storeIndex] });
     }
     
+    // GET /api/stores/:id/products
+    if (path.startsWith('stores/') && path.endsWith('/products') && req.method === 'GET') {
+      const id = path.replace('stores/', '').replace('/products', '');
+      const data = await loadData();
+      const store = data.stores.find(s => s.id === id);
+      
+      if (!store) {
+        return res.status(404).json({ success: false, error: 'Store not found' });
+      }
+      
+      // If it's Essora, use real Shopify API
+      if (store.url && store.url.includes('essora')) {
+        try {
+          const accessToken = process.env.SHOPIFY_ESSORA_TOKEN || '';
+          const shopDomain = 'essora-skincare.myshopify.com';
+          
+          if (!accessToken) {
+            return res.json({ success: true, data: [] });
+          }
+          
+          // Fetch products
+          const productsRes = await shopifyApi(`https://${shopDomain}`, accessToken, '/products.json?limit=50');
+          const products = (productsRes.products || []).map(p => ({
+            id: p.id,
+            title: p.title,
+            status: p.status,
+            image: p.image?.src || null,
+            variants: p.variants?.map(v => ({
+              id: v.id,
+              title: v.title,
+              price: v.price,
+              inventory: v.inventory_quantity
+            })) || []
+          }));
+          
+          return res.json({ success: true, data: products });
+        } catch (err) {
+          console.error('Shopify products error:', err);
+          return res.json({ success: false, error: err.message });
+        }
+      }
+      
+      // Return empty for other stores
+      return res.json({ success: true, data: [] });
+    }
+    
+    // GET /api/stores/:id/orders
+    if (path.startsWith('stores/') && path.endsWith('/orders') && req.method === 'GET') {
+      const id = path.replace('stores/', '').replace('/orders', '');
+      const data = await loadData();
+      const store = data.stores.find(s => s.id === id);
+      
+      if (!store) {
+        return res.status(404).json({ success: false, error: 'Store not found' });
+      }
+      
+      // If it's Essora, use real Shopify API
+      if (store.url && store.url.includes('essora')) {
+        try {
+          const accessToken = process.env.SHOPIFY_ESSORA_TOKEN || '';
+          const shopDomain = 'essora-skincare.myshopify.com';
+          
+          if (!accessToken) {
+            return res.json({ success: true, data: [] });
+          }
+          
+          // Fetch recent orders
+          const ordersRes = await shopifyApi(`https://${shopDomain}`, accessToken, '/orders.json?limit=20&status=any');
+          const orders = (ordersRes.orders || []).map(o => ({
+            id: o.id,
+            name: o.name,
+            order_number: o.order_number,
+            total_price: o.total_price,
+            currency: o.currency,
+            financial_status: o.financial_status,
+            created_at: o.created_at,
+            customer: o.customer ? {
+              first_name: o.customer.first_name,
+              last_name: o.customer.last_name,
+              email: o.customer.email
+            } : null,
+            line_items: o.line_items?.map(i => ({
+              title: i.title,
+              quantity: i.quantity,
+              price: i.price
+            })) || []
+          }));
+          
+          return res.json({ success: true, data: orders });
+        } catch (err) {
+          console.error('Shopify orders error:', err);
+          return res.json({ success: false, error: err.message });
+        }
+      }
+      
+      // Return empty for other stores
+      return res.json({ success: true, data: [] });
+    }
+    
     return res.status(404).json({ success: false, error: 'Not found' });
     
   } catch (err) {
