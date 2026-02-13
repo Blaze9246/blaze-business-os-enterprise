@@ -29,7 +29,17 @@ function getInitialData() {
       { id: '4', title: 'Send onboarding docs to Ayanda', priority: 'high', status: 'done', agent: 'whatsapp', createdAt: new Date().toISOString() },
       { id: '5', title: 'Scrape 50 new Cape Town e-commerce leads', priority: 'medium', status: 'pending', agent: 'hunter', createdAt: new Date().toISOString() }
     ],
-    stores: [{ id: 'essora', name: 'Essora Store', platform: 'shopify', status: 'active' }],
+    stores: [
+      { 
+        id: 'essora', 
+        name: 'Essora Skincare', 
+        url: 'https://essora-skincare.myshopify.com',
+        platform: 'shopify', 
+        status: 'active',
+        notes: '54 products, metafields configured, descriptions formatted',
+        createdAt: new Date().toISOString()
+      }
+    ],
     version: 1,
     lastUpdated: new Date().toISOString(),
     storageMode: isVercel ? 'memory' : 'file'
