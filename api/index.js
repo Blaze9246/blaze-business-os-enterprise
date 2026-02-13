@@ -200,11 +200,28 @@ module.exports = async (req, res) => {
       return res.json({ success: true, message: 'Database seeded with agents, leads, and tasks' });
     }
     
-    // GET /api/systeme/contacts - Pull from Systeme.io
+    // GET /api/systeme/contacts - Pull ALL contacts from Systeme.io
     if (path === 'systeme/contacts' && req.method === 'GET') {
-      const page = req.query.page || 1;
-      const data = await systemeApi(`/contacts?page=${page}&limit=100`);
-      return res.json({ success: true, data });
+      // Pull all pages of contacts
+      let page = 1;
+      let allContacts = [];
+      let hasMore = true;
+
+      while (hasMore && page <= 20) { // Max 2000 contacts (20 pages × 100)
+        const result = await systemeApi(`/contacts?page=${page}&limit=100`);
+        const items = result.items || [];
+        allContacts = allContacts.concat(items);
+        hasMore = items.length === 100;
+        page++;
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          items: allContacts,
+          total: allContacts.length
+        }
+      });
     }
     
     // POST /api/systeme/sync - Full two-way sync
