@@ -4,12 +4,12 @@
   "description": "Blaze Business OS Enterprise — Unified Command Center",
   "main": "api/index.js",
   "scripts": {
-    "start": "node api-server.js"
+    "start": "node api-server.js",
+    "dev": "node api/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "firebase-admin": "^12.0.0",
     "node-fetch": "^2.7.0"
   },
   "engines": {

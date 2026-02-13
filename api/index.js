@@ -1,14 +1,4 @@
-const admin = require('firebase-admin');
-
-// Initialize Firebase once
-if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: 'blaze-enterprise-os'
-  });
-}
-const db = admin.firestore();
+const { initStorage, loadData, saveData, generateId } = require('./storage');
 
 const SYSTEME_API_KEY = process.env.SYSTEME_API_KEY || 'gutxuny6z7abcijjhr16yqazqltx43z5gqcl8jpo12mibokr31js1hfc0ed8i8k2';
 const SYSTEME_BASE = 'https://api.systeme.io/api';
@@ -29,6 +19,9 @@ async function systemeApi(endpoint, options = {}) {
 }
 
 module.exports = async (req, res) => {
+  // Init storage on first request
+  await initStorage();
+  
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -40,10 +33,8 @@ module.exports = async (req, res) => {
   try {
     // GET /api/stats
     if (path === 'stats' && req.method === 'GET') {
-      const leadsSnap = await db.collection('leads').get();
-      const agentsSnap = await db.collection('agents').get();
-      const tasksSnap = await db.collection('tasks').get();
-      const leads = leadsSnap.docs.map(d => d.data());
+      const data = await loadData();
+      const leads = data.leads || [];
       const hotLeads = leads.filter(l => l.tier === 'HOT').length;
       const warmLeads = leads.filter(l => l.tier === 'WARM').length;
       const revenue = hotLeads * 5000 + warmLeads * 2000 + (leads.length - hotLeads - warmLeads) * 500;
@@ -55,18 +46,18 @@ module.exports = async (req, res) => {
           hotLeads,
           warmLeads,
           revenue,
-          totalStores: 1,
-          totalAgents: agentsSnap.size || 4,
-          totalTasks: tasksSnap.size || 0,
-          pendingTasks: tasksSnap.docs.filter(d => d.data().status !== 'done').length || 0
+          totalStores: data.stores?.length || 1,
+          totalAgents: data.agents?.length || 4,
+          totalTasks: data.tasks?.length || 0,
+          pendingTasks: data.tasks?.filter(t => t.status !== 'done').length || 0
         }
       });
     }
     
     // GET /api/leads
     if (path === 'leads' && req.method === 'GET') {
-      const snapshot = await db.collection('leads').orderBy('createdAt', 'desc').limit(200).get();
-      const leads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = await loadData();
+      const leads = (data.leads || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       return res.json({ success: true, data: leads });
     }
     
@@ -75,124 +66,123 @@ module.exports = async (req, res) => {
       const { name, company, email, score, tier, source } = req.body;
       if (!name || !email) return res.status(400).json({ success: false, error: 'Name and email required' });
       
-      const lead = {
-        name, company: company || '', email,
+      const data = await loadData();
+      const newLead = {
+        id: generateId(),
+        name, 
+        company: company || '', 
+        email,
         score: Number(score) || 0,
         tier: tier || 'COLD',
         source: source || 'manual',
         date: new Date().toISOString().split('T')[0],
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: new Date().toISOString()
       };
-      const docRef = await db.collection('leads').add(lead);
-      return res.json({ success: true, data: { id: docRef.id, ...lead } });
+      
+      data.leads = data.leads || [];
+      data.leads.push(newLead);
+      await saveData(data);
+      
+      return res.json({ success: true, data: newLead });
     }
     
     // DELETE /api/leads/:id
     if (path.startsWith('leads/') && req.method === 'DELETE') {
       const id = path.replace('leads/', '');
-      await db.collection('leads').doc(id).delete();
+      const data = await loadData();
+      data.leads = (data.leads || []).filter(l => l.id !== id);
+      await saveData(data);
       return res.json({ success: true });
     }
     
     // GET /api/agents
     if (path === 'agents' && req.method === 'GET') {
-      const snapshot = await db.collection('agents').get();
-      if (snapshot.empty) {
-        return res.json({
-          success: true,
-          data: [
-            { id: 'hunter', name: 'Hunter Agent', role: 'Finds leads', status: 'running', icon: '🎯' },
-            { id: 'outreach', name: 'Outreach Agent', role: 'Sends emails', status: 'idle', icon: '📧' },
-            { id: 'creator', name: 'Creator Agent', role: 'Creates content', status: 'running', icon: '🎨' },
-            { id: 'whatsapp', name: 'WhatsApp Brain', role: 'Manages chats', status: 'idle', icon: '💬' }
-          ]
-        });
-      }
-      const agents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      return res.json({ success: true, data: agents });
+      const data = await loadData();
+      return res.json({ success: true, data: data.agents || [] });
     }
     
     // PUT /api/agents/:id
     if (path.startsWith('agents/') && req.method === 'PUT') {
       const id = path.replace('agents/', '');
-      await db.collection('agents').doc(id).update(req.body);
+      const data = await loadData();
+      const agentIndex = data.agents.findIndex(a => a.id === id);
+      if (agentIndex >= 0) {
+        data.agents[agentIndex] = { ...data.agents[agentIndex], ...req.body };
+        await saveData(data);
+      }
       return res.json({ success: true });
     }
     
     // GET /api/tasks
     if (path === 'tasks' && req.method === 'GET') {
-      const snapshot = await db.collection('tasks').orderBy('createdAt', 'desc').limit(50).get();
-      const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = await loadData();
+      const tasks = (data.tasks || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       return res.json({ success: true, data: tasks });
     }
     
     // POST /api/tasks
     if (path === 'tasks' && req.method === 'POST') {
-      const task = {
+      const data = await loadData();
+      const newTask = {
+        id: generateId(),
         ...req.body,
         status: req.body.status || 'pending',
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: new Date().toISOString()
       };
-      const docRef = await db.collection('tasks').add(task);
-      return res.json({ success: true, data: { id: docRef.id, ...task } });
+      
+      data.tasks = data.tasks || [];
+      data.tasks.push(newTask);
+      await saveData(data);
+      
+      return res.json({ success: true, data: newTask });
     }
     
     // PUT /api/tasks/:id
     if (path.startsWith('tasks/') && req.method === 'PUT') {
       const id = path.replace('tasks/', '');
-      await db.collection('tasks').doc(id).update(req.body);
+      const data = await loadData();
+      const taskIndex = data.tasks.findIndex(t => t.id === id);
+      if (taskIndex >= 0) {
+        data.tasks[taskIndex] = { ...data.tasks[taskIndex], ...req.body };
+        await saveData(data);
+      }
       return res.json({ success: true });
     }
     
     // DELETE /api/tasks/:id
     if (path.startsWith('tasks/') && req.method === 'DELETE') {
       const id = path.replace('tasks/', '');
-      await db.collection('tasks').doc(id).delete();
+      const data = await loadData();
+      data.tasks = (data.tasks || []).filter(t => t.id !== id);
+      await saveData(data);
       return res.json({ success: true });
     }
     
     // GET /api/seed
     if (path === 'seed' && req.method === 'GET') {
-      const batch = db.batch();
+      const { initStorage } = require('./storage');
+      await initStorage();
       
-      // Seed agents
-      const agents = [
-        { name: 'Hunter Agent', role: 'Finds leads via scraping', status: 'running', icon: '🎯' },
-        { name: 'Outreach Agent', role: 'Sends emails & DMs', status: 'idle', icon: '📧' },
-        { name: 'Creator Agent', role: 'Generates content', status: 'running', icon: '🎨' },
-        { name: 'WhatsApp Brain', role: 'Manages WhatsApp', status: 'idle', icon: '💬' }
+      const data = await loadData();
+      
+      // Reset to initial state
+      data.leads = [
+        { id: generateId(), name: 'Thabo Mbeki', company: 'TechnoServe SA', email: 'thabo@technoserve.co.za', score: 85, tier: 'HOT', source: 'linkedin', date: '2026-02-10', createdAt: new Date().toISOString() },
+        { id: generateId(), name: 'Naledi Khoza', company: 'Glow Digital', email: 'naledi@glowdigital.co.za', score: 72, tier: 'WARM', source: 'referral', date: '2026-02-11', createdAt: new Date().toISOString() },
+        { id: generateId(), name: 'James van der Merwe', company: 'Cape Eats', email: 'james@capeeats.com', score: 55, tier: 'WARM', source: 'website', date: '2026-02-09', createdAt: new Date().toISOString() },
+        { id: generateId(), name: 'Ayanda Dlamini', company: 'Dlamini Logistics', email: 'ayanda@dlamini.co.za', score: 90, tier: 'HOT', source: 'systeme.io', date: '2026-02-12', createdAt: new Date().toISOString() },
+        { id: generateId(), name: 'Lerato Molefe', company: 'Molefe Beauty', email: 'lerato@molefebeauty.co.za', score: 88, tier: 'HOT', source: 'referral', date: '2026-02-13', createdAt: new Date().toISOString() }
       ];
-      agents.forEach(a => {
-        batch.set(db.collection('agents').doc(a.name.toLowerCase().replace(/\s+/g, '-')), a);
-      });
       
-      // Seed leads
-      const sampleLeads = [
-        { name: 'Thabo Mbeki', company: 'TechnoServe SA', email: 'thabo@technoserve.co.za', score: 85, tier: 'HOT', source: 'linkedin' },
-        { name: 'Naledi Khoza', company: 'Glow Digital', email: 'naledi@glowdigital.co.za', score: 72, tier: 'WARM', source: 'referral' },
-        { name: 'James van der Merwe', company: 'Cape Eats', email: 'james@capeeats.com', score: 55, tier: 'WARM', source: 'website' },
-        { name: 'Ayanda Dlamini', company: 'Dlamini Logistics', email: 'ayanda@dlamini.co.za', score: 90, tier: 'HOT', source: 'systeme.io' },
-        { name: 'Lerato Molefe', company: 'Molefe Beauty', email: 'lerato@molefebeauty.co.za', score: 88, tier: 'HOT', source: 'referral' },
+      data.tasks = [
+        { id: generateId(), title: 'Follow up with Lerato Molefe', priority: 'high', status: 'pending', agent: 'outreach', createdAt: new Date().toISOString() },
+        { id: generateId(), title: 'Generate Instagram carousel for Glow Digital', priority: 'medium', status: 'in-progress', agent: 'creator', createdAt: new Date().toISOString() },
+        { id: generateId(), title: 'Audit Botha Wines Shopify store', priority: 'low', status: 'pending', agent: 'hunter', createdAt: new Date().toISOString() },
+        { id: generateId(), title: 'Send onboarding docs to Ayanda', priority: 'high', status: 'done', agent: 'whatsapp', createdAt: new Date().toISOString() },
+        { id: generateId(), title: 'Scrape 50 new Cape Town e-commerce leads', priority: 'medium', status: 'pending', agent: 'hunter', createdAt: new Date().toISOString() }
       ];
-      sampleLeads.forEach(l => {
-        const ref = db.collection('leads').doc();
-        batch.set(ref, { ...l, date: new Date().toISOString().split('T')[0], createdAt: admin.firestore.FieldValue.serverTimestamp() });
-      });
       
-      // Seed tasks
-      const tasks = [
-        { title: 'Follow up with Lerato Molefe', priority: 'high', status: 'pending' },
-        { title: 'Generate Instagram carousel for Glow Digital', priority: 'medium', status: 'in-progress' },
-        { title: 'Audit Botha Wines Shopify store', priority: 'low', status: 'pending' },
-        { title: 'Send onboarding docs to Ayanda', priority: 'high', status: 'done' },
-        { title: 'Scrape 50 new Cape Town e-commerce leads', priority: 'medium', status: 'pending' },
-      ];
-      tasks.forEach(t => {
-        const ref = db.collection('tasks').doc();
-        batch.set(ref, { ...t, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-      });
-      
-      await batch.commit();
+      await saveData(data);
       return res.json({ success: true, message: 'Database seeded with agents, leads, and tasks' });
     }
     
@@ -211,8 +201,8 @@ module.exports = async (req, res) => {
       let hasMore = true;
 
       while (hasMore) {
-        const data = await systemeApi(`/contacts?page=${page}&limit=100`);
-        const items = data.items || [];
+        const result = await systemeApi(`/contacts?page=${page}&limit=100`);
+        const items = result.items || [];
         allContacts = allContacts.concat(items);
         hasMore = items.length === 100;
         page++;
@@ -222,21 +212,20 @@ module.exports = async (req, res) => {
       let imported = 0;
       let skipped = 0;
 
-      // 2) Import to Firestore
-      const batch = db.batch();
+      // 2) Import to file storage
+      const data = await loadData();
+      data.leads = data.leads || [];
+      
       for (const contact of allContacts) {
         const email = contact.email;
         if (!email) { skipped++; continue; }
 
         // Check if exists
-        const existing = await db.collection('leads')
-          .where('email', '==', email)
-          .limit(1)
-          .get();
+        const exists = data.leads.some(l => l.email === email);
 
-        if (existing.empty) {
-          const docRef = db.collection('leads').doc();
-          batch.set(docRef, {
+        if (!exists) {
+          data.leads.push({
+            id: generateId(),
             name: contact.fields?.find(f => f.slug === 'first_name')?.value || contact.email.split('@')[0],
             company: contact.fields?.find(f => f.slug === 'company_name')?.value || '',
             email,
@@ -245,14 +234,15 @@ module.exports = async (req, res) => {
             source: 'systeme.io',
             date: new Date().toISOString().split('T')[0],
             systemeId: contact.id?.toString() || '',
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+            createdAt: new Date().toISOString()
           });
           imported++;
         } else {
           skipped++;
         }
       }
-      await batch.commit();
+      
+      await saveData(data);
 
       return res.json({
         success: true,

@@ -7,7 +7,10 @@ RUN npm ci --only=production
 
 COPY . .
 
+# Create data directory for persistent storage
+RUN mkdir -p data/backups
+
 EXPOSE 8080
 ENV PORT=8080
 
-CMD ["node", "api-server.js"]
+CMD ["node", "api/index.js"]
