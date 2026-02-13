@@ -467,8 +467,23 @@
 
         // --- Leads Page with CSV Export (UPDATED) ---
         const Leads = () => {
-            const [leads] = useState(defaultLeads);
+            const [leads, setLeads] = useState([]);
+            const [loading, setLoading] = useState(true);
             const [exporting, setExporting] = useState(false);
+
+            useEffect(() => {
+                fetch('/api/leads')
+                    .then(res => res.json())
+                    .then(data => {
+                        setLeads(data);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        console.error('Failed to load leads:', err);
+                        setLeads(defaultLeads);
+                        setLoading(false);
+                    });
+            }, []);
 
             const exportToCSV = () => {
                 setExporting(true);
@@ -514,6 +529,12 @@
                     </div>
 
                     <div className="glass-card rounded-xl overflow-hidden">
+                    {loading ? (
+                        <div className="p-8 text-center text-gray-400">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4"></div>
+                            Loading leads from database...
+                        </div>
+                    ) : (
                         <table className="w-full">
                             <thead className="bg-white/5 border-b border-white/10">
                                 <tr>
@@ -554,12 +575,13 @@
                                                 </span>
                                             </td>
                                             <td className="py-4 px-6 text-gray-300">{lead.source}</td>
-                                            <td className="py-4 px-6 text-gray-500">{lead.lastActivity}</td>
+                                            <td className="py-4 px-6 text-gray-500">{lead.date || lead.lastActivity}</td>
                                         </tr>
                                     );
                                 })}
                             </tbody>
                         </table>
+                    )}
                     </div>
                 </div>
             );
