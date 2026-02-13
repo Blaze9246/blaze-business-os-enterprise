@@ -911,7 +911,9 @@
         ...options
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
+      const json = await res.json();
+      // API returns {success: true, data: ...} format
+      return json.data || json;
     }
 
     // ─── LOAD ALL DATA ────────────────────────────────────────────────────
@@ -943,10 +945,10 @@
     // ─── STATS ─────────────────────────────────────────────────────────────
     async function loadStats() {
       const data = await api('/api/stats');
-      document.getElementById('stat-leads').textContent = data.contacts || 0;
+      document.getElementById('stat-leads').textContent = data.totalLeads || 0;
       document.getElementById('stat-revenue').textContent = 'R' + (data.revenue || 0).toLocaleString();
-      document.getElementById('stat-agents').textContent = data.agents || 4;
-      document.getElementById('stat-tasks').textContent = data.tasks || 0;
+      document.getElementById('stat-agents').textContent = data.totalAgents || 4;
+      document.getElementById('stat-tasks').textContent = data.pendingTasks || 0;
       // Calculate hot leads
       const hotCount = allLeads.filter(l => l.tier === 'HOT').length;
       document.getElementById('stat-hot').textContent = hotCount;
