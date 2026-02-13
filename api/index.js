@@ -3,6 +3,20 @@ const { initStorage, loadData, saveData, generateId } = require('./storage');
 const SYSTEME_API_KEY = process.env.SYSTEME_API_KEY || 'gutxuny6z7abcijjhr16yqazqltx43z5gqcl8jpo12mibokr31js1hfc0ed8i8k2';
 const SYSTEME_BASE = 'https://api.systeme.io/api';
 
+// Shopify API helper
+async function shopifyApi(storeUrl, accessToken, endpoint) {
+  const baseUrl = storeUrl.replace(/\/$/, '');
+  const url = `${baseUrl}/admin/api/2024-01${endpoint}`;
+  const res = await fetch(url, {
+    headers: {
+      'X-Shopify-Access-Token': accessToken,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!res.ok) throw new Error(`Shopify HTTP ${res.status}`);
+  return res.json();
+}
+
 // Helper to call Systeme.io API
 async function systemeApi(endpoint, options = {}) {
   const url = `${SYSTEME_BASE}${endpoint}`;
@@ -295,7 +309,53 @@ module.exports = async (req, res) => {
       const storeIndex = data.stores.findIndex(s => s.id === id);
       
       if (storeIndex >= 0) {
-        // Simulate fetching metrics from Shopify
+        const store = data.stores[storeIndex];
+        
+        // If it's Essora, use real Shopify API
+        if (store.url && store.url.includes('essora')) {
+          try {
+            // Token loaded from environment or secure storage
+            const accessToken = process.env.SHOPIFY_ESSORA_TOKEN || '';
+            const shopDomain = 'essora-skincare.myshopify.com';
+            
+            if (!accessToken) {
+              return res.json({ success: false, error: 'Store credentials not configured' });
+            }
+            
+            // Fetch products count
+            const productsRes = await shopifyApi(`https://${shopDomain}`, accessToken, '/products/count.json');
+            const productCount = productsRes.count || 0;
+            
+            // Fetch orders count (last 60 days)
+            const sixtyDaysAgo = new Date();
+            sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+            const ordersRes = await shopifyApi(`https://${shopDomain}`, accessToken, `/orders/count.json?created_at_min=${sixtyDaysAgo.toISOString()}&status=any`);
+            const orderCount = ordersRes.count || 0;
+            
+            // Fetch shop info
+            const shopRes = await shopifyApi(`https://${shopDomain}`, accessToken, '/shop.json');
+            const shop = shopRes.shop || {};
+            
+            data.stores[storeIndex].metrics = {
+              products: productCount,
+              orders: orderCount,
+              revenue: Math.floor(orderCount * 450), // Estimate R450 avg order
+              currency: shop.currency || 'ZAR',
+              shopName: shop.name,
+              plan: shop.plan_name
+            };
+            data.stores[storeIndex].lastSync = new Date().toISOString();
+            data.stores[storeIndex].status = 'active';
+            await saveData(data);
+            
+            return res.json({ success: true, data: data.stores[storeIndex] });
+          } catch (err) {
+            console.error('Shopify sync error:', err);
+            return res.json({ success: false, error: err.message });
+          }
+        }
+        
+        // Fallback to simulated data for other stores
         data.stores[storeIndex].metrics = {
           products: Math.floor(Math.random() * 500) + 50,
           orders: Math.floor(Math.random() * 1000) + 100,
