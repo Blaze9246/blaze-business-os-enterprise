@@ -1,4 +1,3 @@
-// Simple API for Vercel
 module.exports = function(req, res) {
   res.json([
     { id: '1', name: 'Yes Friends', company: 'Ethical Clothing', email: 'contact@yesfriends.com', score: 30, tier: 'COLD', source: 'Daily Lead Gen', date: 'Feb 13, 2026' },
