@@ -13,10 +13,20 @@ const db = admin.firestore();
 const SYSTEME_API_KEY = process.env.SYSTEME_API_KEY || 'gutxuny6z7abcijjhr16yqazqltx43z5gqcl8jpo12mibokr31js1hfc0ed8i8k2';
 const SYSTEME_BASE = 'https://api.systeme.io/api';
 
-const systemeHeaders = {
-  'X-API-Key': SYSTEME_API_KEY,
-  'Content-Type': 'application/json'
-};
+// Helper to call Systeme.io API
+async function systemeApi(endpoint, options = {}) {
+  const url = `${SYSTEME_BASE}${endpoint}`;
+  const res = await fetch(url, {
+    headers: {
+      'X-API-Key': SYSTEME_API_KEY,
+      'Content-Type': 'application/json',
+      ...options.headers
+    },
+    ...options
+  });
+  if (!res.ok) throw new Error(`Systeme.io HTTP ${res.status}`);
+  return res.json();
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -152,9 +162,73 @@ module.exports = async (req, res) => {
       return res.json({ success: true, message: 'Database seeded' });
     }
     
-    // Systeme.io sync (simplified)
+    // GET /api/systeme/contacts - Pull from Systeme.io
+    if (path === 'systeme/contacts' && req.method === 'GET') {
+      const page = req.query.page || 1;
+      const data = await systemeApi(`/contacts?page=${page}&limit=100`);
+      return res.json({ success: true, data });
+    }
+    
+    // POST /api/systeme/sync - Full two-way sync
     if (path === 'systeme/sync' && req.method === 'POST') {
-      return res.json({ success: true, data: { pulled: 0, imported: 0, skipped: 0, pushed: 0 } });
+      // 1) Pull all contacts from Systeme.io
+      let page = 1;
+      let allContacts = [];
+      let hasMore = true;
+
+      while (hasMore) {
+        const data = await systemeApi(`/contacts?page=${page}&limit=100`);
+        const items = data.items || [];
+        allContacts = allContacts.concat(items);
+        hasMore = items.length === 100;
+        page++;
+        if (page > 10) break; // safety cap
+      }
+
+      let imported = 0;
+      let skipped = 0;
+
+      // 2) Import to Firestore
+      const batch = db.batch();
+      for (const contact of allContacts) {
+        const email = contact.email;
+        if (!email) { skipped++; continue; }
+
+        // Check if exists
+        const existing = await db.collection('leads')
+          .where('email', '==', email)
+          .limit(1)
+          .get();
+
+        if (existing.empty) {
+          const docRef = db.collection('leads').doc();
+          batch.set(docRef, {
+            name: contact.fields?.find(f => f.slug === 'first_name')?.value || contact.email.split('@')[0],
+            company: contact.fields?.find(f => f.slug === 'company_name')?.value || '',
+            email,
+            score: 30,
+            tier: 'COLD',
+            source: 'systeme.io',
+            date: new Date().toISOString().split('T')[0],
+            systemeId: contact.id?.toString() || '',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          imported++;
+        } else {
+          skipped++;
+        }
+      }
+      await batch.commit();
+
+      return res.json({
+        success: true,
+        data: {
+          pulled: allContacts.length,
+          imported,
+          skipped,
+          pushed: 0
+        }
+      });
     }
     
     return res.status(404).json({ success: false, error: 'Not found' });
