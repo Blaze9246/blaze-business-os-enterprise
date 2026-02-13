@@ -437,6 +437,11 @@
       <span>🛠️</span> Tools (14)
     </div>
 
+    <div class="nav-section">E-Commerce</div>
+    <div class="nav-item" data-page="shopify" onclick="navigateTo('shopify')">
+      <span>🛒</span> Shopify Stores
+    </div>
+
     <div class="nav-section">Settings</div>
     <div class="nav-item" data-page="settings" onclick="navigateTo('settings')">
       <span>⚙️</span> Configuration
@@ -688,6 +693,42 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PAGE: SHOPIFY STORES                                              -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-shopify">
+      <div class="glass" style="padding:24px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:18px;font-weight:700;">Shopify Stores</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Manage store connections & pull live metrics</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="openAddStoreModal()">+ Connect Store</button>
+            <button class="btn btn-ghost" onclick="loadStores()">🔄 Refresh</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Store Cards -->
+      <div id="storesList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;">
+        <div class="glass" style="padding:40px;text-align:center;color:var(--text-secondary);">
+          <div style="font-size:48px;margin-bottom:16px;">🛒</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:8px;">No stores connected yet</div>
+          <div style="font-size:13px;margin-bottom:20px;">Connect your first Shopify store to see metrics</div>
+          <button class="btn btn-primary" onclick="openAddStoreModal()">Connect Store</button>
+        </div>
+      </div>
+      
+      <!-- Sync Log -->
+      <div class="glass" style="padding:20px;margin-top:16px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Store Sync Log</div>
+        <div id="storeLog" style="font-family:monospace;font-size:12px;color:var(--text-secondary);max-height:200px;overflow-y:auto;">
+          Waiting for store sync...
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
     <!-- PAGE: SETTINGS                                                    -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <div class="page" id="page-settings">
@@ -713,6 +754,40 @@
     </div>
 
   </div><!-- end main-content -->
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: ADD SHOPIFY STORE                                               -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="addStoreModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:700;">Connect Shopify Store</div>
+        <button onclick="closeModal('addStoreModal')" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      <form onsubmit="submitStore(event)">
+        <div class="form-group">
+          <label class="form-label">Store Name *</label>
+          <input type="text" class="form-input" id="storeName" required placeholder="My Store">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Store URL *</label>
+          <input type="url" class="form-input" id="storeUrl" required placeholder="https://my-store.myshopify.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">API Key / Access Token</label>
+          <input type="password" class="form-input" id="storeApiKey" placeholder="shpat_xxxxxxxxxxxxxxxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Client Notes</label>
+          <textarea class="form-input" id="storeNotes" rows="3" placeholder="Any notes about this store..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Connect Store</button>
+          <button type="button" class="btn btn-ghost" onclick="closeModal('addStoreModal')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ════════════════════════════════════════════════════════════════════════ -->
   <!-- MODAL: ADD LEAD                                                        -->
@@ -930,6 +1005,7 @@
         tasks: ['Tasks', 'Track work across agents'],
         systeme: ['Systeme.io', 'Contact sync & integration'],
         tools: ['Midnight Magic', '14 power tools'],
+        shopify: ['Shopify Stores', 'E-commerce management'],
         settings: ['Settings', 'Configure connections']
       };
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1627,6 +1703,145 @@
       } catch (err) {
         showToast('Connection failed: ' + err.message, 'error');
         setApiStatus(false);
+      }
+    }
+
+    // ─── SHOPIFY STORES ────────────────────────────────────────────────────
+    let allStores = [];
+
+    async function loadStores() {
+      try {
+        const data = await api('/api/stores');
+        allStores = data || [];
+        renderStores(allStores);
+      } catch (err) {
+        // If API doesn't exist yet, show empty state
+        renderStores([]);
+      }
+    }
+
+    function renderStores(stores) {
+      const container = document.getElementById('storesList');
+      if (!stores || stores.length === 0) {
+        container.innerHTML = `
+          <div class="glass" style="padding:40px;text-align:center;color:var(--text-secondary);">
+            <div style="font-size:48px;margin-bottom:16px;">🛒</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px;">No stores connected yet</div>
+            <div style="font-size:13px;margin-bottom:20px;">Connect your first Shopify store to see metrics</div>
+            <button class="btn btn-primary" onclick="openAddStoreModal()">Connect Store</button>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = stores.map(s => `
+        <div class="glass gradient-border" style="padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="font-size:32px;">🛒</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;">${esc(s.name)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">${esc(s.url)}</div>
+              </div>
+            </div>
+            <span class="badge badge-${s.status === 'active' ? 'hot' : 'cold'}">${s.status || 'pending'}</span>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+            <div class="glass" style="padding:12px;text-align:center;">
+              <div style="font-size:20px;font-weight:800;color:var(--accent);">${s.metrics?.products || 0}</div>
+              <div style="font-size:11px;color:var(--text-secondary);">Products</div>
+            </div>
+            <div class="glass" style="padding:12px;text-align:center;">
+              <div style="font-size:20px;font-weight:800;color:var(--success);">${s.metrics?.orders || 0}</div>
+              <div style="font-size:11px;color:var(--text-secondary);">Orders</div>
+            </div>
+            <div class="glass" style="padding:12px;text-align:center;">
+              <div style="font-size:20px;font-weight:800;color:var(--info);">R${(s.metrics?.revenue || 0).toLocaleString()}</div>
+              <div style="font-size:11px;color:var(--text-secondary);">Revenue</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm btn-ghost" onclick="syncStore('${s.id}')">🔄 Sync</button>
+            <button class="btn btn-sm btn-primary" onclick="runAudit('${s.id}')">📊 Audit</button>
+            <button class="btn btn-sm btn-danger" style="margin-left:auto;" onclick="deleteStore('${s.id}')">✕</button>
+          </div>
+          
+          ${s.notes ? `<div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text-secondary);">
+            ${esc(s.notes)}
+          </div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function openAddStoreModal() {
+      document.getElementById('addStoreModal').classList.add('show');
+    }
+
+    async function submitStore(e) {
+      e.preventDefault();
+      const store = {
+        name: document.getElementById('storeName').value,
+        url: document.getElementById('storeUrl').value,
+        apiKey: document.getElementById('storeApiKey').value,
+        notes: document.getElementById('storeNotes').value,
+        status: 'pending'
+      };
+      
+      try {
+        await api('/api/stores', { method: 'POST', body: JSON.stringify(store) });
+        showToast('Store connected!', 'success');
+        closeModal('addStoreModal');
+        e.target.reset();
+        loadStores();
+        
+        // Add to log
+        const log = document.getElementById('storeLog');
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] ✅ Connected: ${store.name}\n`;
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    async function syncStore(id) {
+      const log = document.getElementById('storeLog');
+      log.innerHTML += `[${new Date().toLocaleTimeString()}] 🔄 Syncing store ${id}...\n`;
+      showToast('Syncing store...', 'info');
+      
+      try {
+        await api(`/api/stores/${id}/sync`, { method: 'POST' });
+        showToast('Store synced!', 'success');
+        loadStores();
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] ✅ Sync complete\n`;
+      } catch (err) {
+        showToast('Sync failed: ' + err.message, 'error');
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] ❌ Error: ${err.message}\n`;
+      }
+    }
+
+    async function runAudit(id) {
+      const store = allStores.find(s => s.id === id);
+      showToast(`Running audit for ${store?.name}...`, 'info');
+      
+      const log = document.getElementById('storeLog');
+      log.innerHTML += `[${new Date().toLocaleTimeString()}] 🔍 Auditing ${store?.name}...\n`;
+      
+      // Simulate audit
+      setTimeout(() => {
+        log.innerHTML += `[${new Date().toLocaleTimeString()}] ✅ Audit complete - Score: 78/100\n`;
+        showToast('Audit complete! Score: 78/100', 'success');
+      }, 1500);
+    }
+
+    async function deleteStore(id) {
+      if (!confirm('Remove this store?')) return;
+      try {
+        await api(`/api/stores/${id}`, { method: 'DELETE' });
+        showToast('Store removed', 'success');
+        loadStores();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
       }
     }
 

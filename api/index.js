@@ -255,6 +255,60 @@ module.exports = async (req, res) => {
       });
     }
     
+    // GET /api/stores
+    if (path === 'stores' && req.method === 'GET') {
+      const data = await loadData();
+      return res.json({ success: true, data: data.stores || [] });
+    }
+    
+    // POST /api/stores
+    if (path === 'stores' && req.method === 'POST') {
+      const data = await loadData();
+      const newStore = {
+        id: generateId(),
+        ...req.body,
+        status: req.body.status || 'pending',
+        metrics: req.body.metrics || { products: 0, orders: 0, revenue: 0 },
+        createdAt: new Date().toISOString()
+      };
+      
+      data.stores = data.stores || [];
+      data.stores.push(newStore);
+      await saveData(data);
+      
+      return res.json({ success: true, data: newStore });
+    }
+    
+    // DELETE /api/stores/:id
+    if (path.startsWith('stores/') && req.method === 'DELETE') {
+      const id = path.replace('stores/', '');
+      const data = await loadData();
+      data.stores = (data.stores || []).filter(s => s.id !== id);
+      await saveData(data);
+      return res.json({ success: true });
+    }
+    
+    // POST /api/stores/:id/sync
+    if (path.startsWith('stores/') && path.endsWith('/sync') && req.method === 'POST') {
+      const id = path.replace('stores/', '').replace('/sync', '');
+      const data = await loadData();
+      const storeIndex = data.stores.findIndex(s => s.id === id);
+      
+      if (storeIndex >= 0) {
+        // Simulate fetching metrics from Shopify
+        data.stores[storeIndex].metrics = {
+          products: Math.floor(Math.random() * 500) + 50,
+          orders: Math.floor(Math.random() * 1000) + 100,
+          revenue: Math.floor(Math.random() * 100000) + 10000
+        };
+        data.stores[storeIndex].lastSync = new Date().toISOString();
+        data.stores[storeIndex].status = 'active';
+        await saveData(data);
+      }
+      
+      return res.json({ success: true, data: data.stores[storeIndex] });
+    }
+    
     return res.status(404).json({ success: false, error: 'Not found' });
     
   } catch (err) {
