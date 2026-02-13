@@ -1,0 +1,56 @@
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default"
+    }
+  ],
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "serviceAccountKey.json"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/leads",
+        "function": "getLeads"
+      },
+      {
+        "source": "/api/leads/add",
+        "function": "addLead"
+      },
+      {
+        "source": "/api/leads/delete",
+        "function": "deleteLead"
+      },
+      {
+        "source": "/api/stats",
+        "function": "getStats"
+      },
+      {
+        "source": "/api/tasks",
+        "function": "getTasks"
+      },
+      {
+        "source": "/api/agents",
+        "function": "getAgents"
+      },
+      {
+        "source": "/api/stores",
+        "function": "getStores"
+      },
+      {
+        "source": "/api/seed",
+        "function": "seedData"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
